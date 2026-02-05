@@ -1,0 +1,29 @@
+{
+  "lastUpdated": "02-04-2026",
+  "resources": [
+    {
+      "id": "1",
+      "title": "arXiv Computer Science Papers",
+      "description": "Search and browse open-access computer science research papers and preprints from arXiv.",
+      "url": "https://arxiv.org/search/cs",
+      "category": "Literature Review",
+      "tags": ["writing", "research", "lit"]
+    },
+    {
+      "id": "2",
+      "title": "ResearchRabbit",
+      "description": "AI-powered tool for discovering, organizing, and visualizing academic literature.",
+      "url": "https://www.researchrabbit.ai/",
+      "category": "Literature Review",
+      "tags": ["writing", "research", "lit"]
+    },
+    {
+      "id": "3",
+      "title": "Google Scholar",
+      "description": "Academic search engine for scholarly articles, theses, books, and citations across disciplines.",
+      "url": "https://scholar.google.com/",
+      "category": "Literature Review",
+      "tags": ["writing", "research", "lit"]
+    }
+  ]
+}
