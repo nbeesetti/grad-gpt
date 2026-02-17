@@ -10,15 +10,10 @@ load_dotenv()
 
 client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
 MODEL_ID = "gemini-2.5-flash-lite"
-
-
-def generate_text(prompt):
-    response = client.models.generate_content(model=MODEL_ID, contents=prompt)
-    return response.text
-
+RES_JSON_PATH = "knowledge_base/resources.json"
 
 SYSTEM_PROMPT = """
-You are a research support assistant for CS Master's students.
+You are a research support assistant for Computer Science Master's students.
 
 You may ONLY recommend resources that are provided.
 You must NEVER invent links, tools, or websites.
@@ -41,7 +36,12 @@ Respond with a concise, helpful list.
 """
 
 
-def load_resources(path):
+def generate_text(prompt):
+    response = client.models.generate_content(model=MODEL_ID, contents=prompt)
+    return response.text
+
+
+def load_resources_json(path):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data.get("resources", [])
@@ -56,10 +56,6 @@ def filter_resources(
     results = []
 
     for r in resources:
-        if category:
-            if r.get("category", "").lower() != category.lower():
-                continue
-
         if tags:
             resource_tags = [t.lower() for t in r.get("tags", [])]
             if not any(tag.lower() in resource_tags for tag in tags):
@@ -83,7 +79,6 @@ def build_resource_context(resources):
             f"""
             [{i}
             Title: {r["title"]}
-            Category: {r["category"]}
             Description: {r["description"]}
             Link: {r["url"]}"""
         )
@@ -109,14 +104,13 @@ def run_resource_agent(topic, resource_context):
 
 
 def main():
-    resources = load_resources("knowledge_base/resources.json")
+    resources_json = load_resources_json(RES_JSON_PATH)
 
-    topic = "literature review"
+    tag = "literature review"
 
     filtered = filter_resources(
-        resources,
-        category="Literature Review",
-        tags=["lit", "research"],
+        resources_json,
+        tags=["lit-review", "research"],
     )
 
     context = build_resource_context(filtered)
