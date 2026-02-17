@@ -12,28 +12,47 @@ client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
 MODEL_ID = "gemini-2.5-flash-lite"
 RES_JSON_PATH = "knowledge_base/resources.json"
 
-SYSTEM_PROMPT = """
+TAG_EXTRACTION_PROMPT = """
 You are a research support assistant for Computer Science Master's students.
 
-You may ONLY recommend resources that are provided.
-You must NEVER invent links, tools, or websites.
-If no relevant resources are available, say so clearly.
+From the student's query, select the most relevant tags
+from the AVAILABLE TAGS list.
+
+Rules:
+- Only choose tags from AVAILABLE TAGS
+- Return 2-7 tags max
+- Return valid JSON response only
+- Format: {"selected_tags": ["tag1", "tag2"]}
+
+Student's query:
+{query}
+
+AVAILABLE TAGS:
+{available_tags}
+"""
+
+
+RESOURCE_RANKING_PROMPT = """
+You are a research support assistant for Computer Science Master's students.
+
+You may ONLY recommend resources provided below.
+You must NEVER invent links or tools.
 
 Your task:
 - Select the most relevant resources
+- Rank them by relevance to student's query
+- Return at most 5
 - Briefly explain why each is useful
-- Return at most 5 resources
-- Always include the link exactly as provided
-"""
+- Always include the link EXACTLY as provided
 
-USER_PROMPT_TEMPLATE = """
-The student is working on: {topic}
+Student query:
+{query}
 
 AVAILABLE RESOURCES:
 {resource_context}
-
-Respond with a concise, helpful list.
 """
+
+# -----------------------------------------------------------------------------
 
 
 def generate_text(prompt):
