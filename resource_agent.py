@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict
 from dotenv import load_dotenv
 
 # from googlegenai import AzureOpenAI
@@ -8,9 +8,13 @@ from google import genai
 
 load_dotenv()
 
-client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
+DEBUG = False
 MODEL_ID = "gemini-2.5-flash-lite"
 RES_JSON_PATH = "knowledge_base/resources.json"
+
+
+# Prompts -----------------------------------------------------------------
+
 
 TAG_EXTRACTION_PROMPT = """
 You are a research support assistant for Computer Science Master's students.
@@ -22,9 +26,9 @@ Rules:
 - Only choose tags from AVAILABLE TAGS
 - Return 2-7 tags max
 - Return valid JSON response only
-- Format: {"selected_tags": ["tag1", "tag2"]}
+- Response Format: {{"selected_tags": ["tag1", "tag2"]}}
 
-Student's query:
+Student query:
 {query}
 
 AVAILABLE TAGS:
@@ -52,94 +56,87 @@ AVAILABLE RESOURCES:
 {resource_context}
 """
 
-# -----------------------------------------------------------------------------
+
+# Resource Agent Class --------------------------------------------------------
 
 
-def generate_text(prompt):
-    response = client.models.generate_content(model=MODEL_ID, contents=prompt)
-    return response.text
+class ResourceAgent:
+    def __init__(self):
+        self.client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
+        self.resources_json = self._load_resources_json(RES_JSON_PATH)
+        self.available_tags = self._load_available_tags(self.resources_json)
 
+    def _load_resources_json(self, path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get("resources", [])
 
-def load_resources_json(path):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("resources", [])
+    def _load_available_tags(self, resources: List[Dict]) -> set:
+        return {tag.lower() for r in resources for tag in r.get("tags", [])}
 
+    # Make LLM Calls ------------------------------------------------
 
-def filter_resources(
-    resources,
-    category,
-    tags,
-    limit=5,
-):
-    results = []
+    def _generate(self, prompt: str):
+        response = self.client.models.generate_content(
+            model=MODEL_ID,
+            contents=prompt,
+        )
+        if DEBUG:
+            print(response.text)
+        return response.text
 
-    for r in resources:
-        if tags:
-            resource_tags = [t.lower() for t in r.get("tags", [])]
-            if not any(tag.lower() in resource_tags for tag in tags):
-                continue
+    # Functions -----------------------------------------------------
 
-        results.append(r)
-
-        if len(results) >= limit:
-            break
-
-    return results
-
-
-def build_resource_context(resources):
-    if not resources:
-        return "NO RESOURCES AVAILABLE."
-
-    blocks = []
-    for i, r in enumerate(resources, start=1):
-        blocks.append(
-            f"""
-            [{i}
-            Title: {r["title"]}
-            Description: {r["description"]}
-            Link: {r["url"]}"""
+    def get_tags(self, query: str) -> set:
+        prompt = TAG_EXTRACTION_PROMPT.format(
+            query=query, available_tags=(", ".join(self.available_tags))
         )
 
-    return "\n\n".join(blocks)
+        response = self._generate(prompt)
+        print("RESPONSE IN GET TAGS:", json.loads(response))
+
+        tags = json.loads(response).get("selected_tags", [])
+        return {t.lower() for t in tags if t in self.available_tags}
+
+    def filter_resources(self, selected_tags: set):
+        res = []
+        for r in self.resources_json:
+            resource_tags = {t.lower() for t in r.get("tags", [])}
+            if selected_tags.intersection(resource_tags):
+                res.append(r)
+        return res
+
+    def rank_resources(self, query, filtered_resources: List[Dict]):
+        if not filtered_resources:
+            return "None found."
+
+        resource_context = []
+        for i, r in enumerate(filtered_resources):
+            resource_context.append(
+                f"[{i+1}]\nTitle: {r['title']}\nDescription: {r['description']}\nLink: {r['url']}\nTags: {', '.join(r.get('tags', []))}"
+            )
+        context = "\n\n".join(resource_context)
+
+        prompt = RESOURCE_RANKING_PROMPT.format(query=query, resource_context=context)
+
+        return self._generate(prompt)
+
+    def run(self, query: str):
+        selected_tags = self.get_tags(query)
+        filtered_res = self.filter_resources(selected_tags)
+        return self.rank_resources(query, filtered_res)
 
 
-def build_full_prompt(topic, resource_context):
-    user_prompt = USER_PROMPT_TEMPLATE.format(
-        topic=topic,
-        resource_context=resource_context,
-    )
-    return SYSTEM_PROMPT.strip() + "\n\n" + user_prompt.strip()
-
-
-def run_resource_agent(topic, resource_context):
-    prompt = build_full_prompt(topic, resource_context)
-    response = client.models.generate_content(
-        model=MODEL_ID,
-        contents=prompt,
-    )
-    return response.text
+# Main ------------------------------------------------------------------------
 
 
 def main():
-    resources_json = load_resources_json(RES_JSON_PATH)
+    res_agent = ResourceAgent()
 
-    tag = "literature review"
-
-    filtered = filter_resources(
-        resources_json,
-        tags=["lit-review", "research"],
-    )
-
-    context = build_resource_context(filtered)
-
-    answer = run_resource_agent(
-        topic=topic,
-        resource_context=context,
-    )
-
-    print(answer)
+    while True:
+        query = input("Student's resource-related query: ")
+        agent_response = res_agent.run(query)
+        print("\n", agent_response)
 
 
 if __name__ == "__main__":
