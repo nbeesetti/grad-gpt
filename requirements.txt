@@ -2,3 +2,5 @@ gradio
 openai
 python-dotenv
 plotly
+
+google-genai
