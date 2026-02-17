@@ -10,247 +10,381 @@
     {
       "id": "1",
       "title": "MS Program Overview & Degree Requirements",
-      "summary": "The MS consists of 45 units: 20 units of 500-level coursework, 16 units of advisor-approved electives (400/500-level), and 9 units of thesis. Thesis-only — no test option. At least 60% of units must be 500-level.",
+      "content": "The MS program in Computer Science prepares students for careers in software engineering, computer architecture, programming languages, theory of computing, operating systems, database systems, distributed computing, computer networks, artificial intelligence, computer graphics, and human-computer interaction.The program consists of:- **20 units** of graduate coursework (500-level)- **16 units** of advisor-approved electives (400- or 500-level)- **9 units** of thesis**The CSSE department only offers a thesis option. There is no test-only option.**Total: **45 units beyond the undergraduate degree.**Official course catalog: https://catalog.calpoly.edu/### Required 500-Level Courses (select 20 units from):CSC 508, 509, 513, 515, 521, 522, 524, 530, 540, 549, 550, 560, 564, 566, 569, 570, 572, 580, 581, 582, 587### Thesis Sequence:- CSC 590 – Thesis Seminar (1 unit)- CSC 596 & CSC 597 – Research in Computer Science I & II (2+2 units) — must be taken before CSC 599- CSC 599 – Thesis (4 units)**Alternative:** If you take CSC 497 + CSC 498 (Research Senior Project) for your senior project, you may take an additional 4-unit 500-level course in lieu of 4 units of thesis (CSC 596 + CSC 597).Note: No more than 4 units total of CSC 500 allowed.At least **60% of units** must be at the 500-level (applies to students matriculated Fall 2019 or later; 50% for those before Fall 2019).---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "degree-requirements", "units", "thesis", "500-level", "electives"]
+      "tags": [
+        "ms",
+        "thesis",
+        "electives",
+        "units",
+        "500-level",
+        "matriculation"
+      ]
     },
     {
       "id": "2",
-      "title": "MS Required 500-Level Courses",
-      "summary": "Select 20 units from: CSC 508, 509, 513, 515, 521, 522, 524, 530, 540, 549, 550, 560, 564, 566, 569, 570, 572, 580, 581, 582, 587.",
-      "sourceURL": "https://catalog.calpoly.edu/",
-      "tags": ["ms", "degree-requirements", "500-level", "course-list", "units"]
+      "title": "MS Program Eligibility",
+      "content": "Eligibility requires:- A baccalaureate degree from an accredited institution- Good standing at the last college attended- Background in Computer Science, demonstrated by: a B.S. in Computer Science, a Minor in Computer Science, or a B.S. in a closely related fieldIf your undergraduate background doesn't meet criteria, you may complete prerequisite courses (at Cal Poly Extended Education http://extended.calpoly.edu or comparable institution) prior to applying. A formal degree is not required—transcripts showing completion are sufficient.---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "ms",
+        "admissions"
+      ]
     },
     {
       "id": "3",
-      "title": "MS Thesis Sequence",
-      "summary": "Required thesis courses: CSC 590 Thesis Seminar (1 unit), CSC 596 Research I (2 units), CSC 597 Research II (2 units), CSC 599 Thesis (4 units). 596+597 must be taken before 599. Alternative: if you completed CSC 497+498, take an extra 500-level course (4 units) instead of 596+597.",
+      "title": "Applying to the MS Program (External Applicants)",
+      "content": "International students, domestic students not at Cal Poly, and Cal Poly graduates must apply via **Cal State Apply**: https://www.calpoly.edu/admissions/graduate-student/how-to-apply- Do **not** send transcripts, scores, or documents to the CSSE department—send them to the Graduate Admissions Office only.- Questions about the application process: gradadmissions@calpoly.edu- Questions about the MS program itself: bellardo@calpoly.edu**Required application materials:**- Personal statement- Resume/CV- Three letters of recommendation- GRE scores are **not** required and not considered**Tips for a strong personal statement:**- Follow Cal Poly Career Services guidance- Express clarity about your computing interests/research area- Identify a strong faculty thesis match (critical factor)- Choose recommenders who can evaluate CS aptitude (avoid character-only references like coaches or band directors)**Review timeline:** 6–8 weeks after the deadline. Submitting early does not result in an earlier decision. All applications are reviewed together after the deadline. Notifications come from the Graduate Admissions Office; the graduate coordinator cannot communicate decisions directly.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "thesis", "csc590", "csc596", "csc597", "csc599", "degree-requirements", "registration"]
+      "tags": [
+        "ms",
+        "admissions",
+        "deadline",
+        "thesis",
+        "international"
+      ]
     },
     {
       "id": "4",
-      "title": "MS Program Eligibility",
-      "summary": "Requires a baccalaureate degree from an accredited institution, good standing at last institution, and CS background demonstrated by a BS in CS, a CS Minor, or a closely related BS. Missing prerequisites can be completed at Cal Poly Extended Ed or another institution — a formal degree is not required.",
+      "title": "Applying to the MS Program (Internal / Current Cal Poly Students)",
+      "content": "Currently matriculated Cal Poly students should use the internal application process managed by the CSSE department.**Next application deadline:** Monday, April 13th, 2026  Applications accepted every quarter **except summer**. All materials due by the **end of the second week of instruction.****Application process (2 parts):**1. **Part 1** – Background info + recommender contact info (submit early to give recommenders time). Completing Part 1 triggers AdobeSign links to recommenders and a Part 2 link to you.2. **Part 2** – Personal statement + resumeTrack application status: https://users.csc.calpoly.edu/~bellardo/cgi-bin/gradapp.sh  Do **not** use any forms from the Graduate Education website — they will be denied.**When to apply:** Begin applying with **three quarters remaining** in your B.S. It is highly unlikely you'll be admitted more than three quarters before completing your B.S. If not admitted, you may reapply; prior results are not considered.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "eligibility", "prerequisites", "admissions"]
+      "tags": [
+        "ms",
+        "admissions",
+        "deadline",
+        "matriculation"
+      ]
     },
     {
       "id": "5",
-      "title": "Applying to the MS Program — External Applicants",
-      "summary": "Apply via Cal State Apply. Do not send documents to CSSE directly. Required: personal statement, resume/CV, 3 letters of recommendation. GRE not required. Application review takes 6–8 weeks after deadline. All applications reviewed together after the deadline closes.",
-      "sourceURL": "https://www.calpoly.edu/admissions/graduate-student/how-to-apply",
-      "tags": ["ms", "admissions", "application", "personal-statement", "letters-of-recommendation", "external"]
+      "title": "Historical MS Acceptance Rates",
+      "content": "The MS in Computer Science is an **impacted program** — not every qualified applicant is accepted.**AY 2023–2024 Statistics:**- Total Applications: 180- Total Admission Offers: 35- Acceptance Rate: **19%**Acceptance rates vary year to year based on available spots and applicant pool depth.---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "ms",
+        "bms",
+        "admissions"
+      ]
     },
     {
       "id": "6",
-      "title": "Applying to the MS Program — Internal (Current Cal Poly Students)",
-      "summary": "Apply internally via the CSSE department process. Next deadline: April 13, 2026. Applications accepted every quarter except summer, due by end of week 2. Two-part application: Part 1 (background + recommenders), Part 2 (personal statement + resume). Apply 3 quarters before finishing your BS. Track status at https://users.csc.calpoly.edu/~bellardo/cgi-bin/gradapp.sh.",
+      "title": "After Acceptance: Next Steps for New MS Students",
+      "content": "1. **Accept your admission offer** in the portal before proceeding.2. **Find a thesis advisor** — start before arriving on campus. Contact CS professors using your Cal Poly email (faculty may not have access to admitted student lists). See: https://csc.calpoly.edu/gr (Selecting a Thesis Advisor section)3. **Register for classes** — the university does not do this for you. Failure to register results in automatic rescission of your admission offer. See: https://registrar.calpoly.edu/registration-overview     - For enrollment issues or prerequisite problems, email: lfiorent@calpoly.edu before your registration appointment.4. **Complete your Working Formal Study Plan** during your first quarter. Forms: https://grad.calpoly.edu/checklist-forms/forms.html**Logistical resources:**- International students: https://international.calpoly.edu/- On-campus housing: https://www.calpoly.edu/life-at-cal-poly/housing-and-dining- Off-campus housing: https://deanofstudents.calpoly.edu/offcampushousing- Financial aid/fellowships: https://grad.calpoly.edu/resources/financial-opportunities/financial-opportunities.html (complete FAFSA)- Enrollment appointment timing: https://registrar.calpoly.edu/enrollment-appointments/---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "admissions", "application", "internal", "deadline", "current-students"]
+      "tags": [
+        "ms",
+        "bms",
+        "admissions",
+        "thesis",
+        "units",
+        "formal-study-plan",
+        "international",
+        "registration"
+      ]
     },
     {
       "id": "7",
-      "title": "MS Historical Acceptance Rates",
-      "summary": "MS program is impacted. AY 2023–2024: 180 applications, 35 offers, 19% acceptance rate. Rates vary year to year based on capacity and applicant pool.",
+      "title": "Blended B.S. + M.S. Program Overview & Degree Requirements",
+      "content": "The Blended (BMS) program allows academically excellent upper-division students to complete an M.S. in Computer Science while finishing a B.S. in Computer Science, Computer Engineering, or Software Engineering.**Benefits:**- Simplified application process (no application fee)- Potential to double-count a limited number of units- Access to graduate student facilities while finishing B.S.- TA appointments (if available)- Graduate student priority registration after Change of Objective is accepted (upon completing 180 units)**Degree structure (same as MS):**- 20 units of 500-level graduate coursework- 16 units of advisor-approved electives (400- or 500-level)- 9 units of thesis**Transition:** Students retain undergraduate status until they complete 180 quarter / 120 semester units. A blended student must be at graduate standing for **a minimum of 2 academic terms** before graduating.**GPA requirements:**- Minimum 2.5 cumulative SLO GPA to be accepted- Once at graduate standing, must maintain a 3.0 GPA on the Formal Study PlanCurrent catalog unit totals for paired programs:- BS CS: 180 quarter units- BS SE: 183 quarter units- BS CPE: 191 quarter units- MS CS: 45 quarter units---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "admissions", "acceptance-rate", "impacted"]
+      "tags": [
+        "ms",
+        "bms",
+        "admissions",
+        "gpa",
+        "thesis",
+        "electives",
+        "double-counting",
+        "units",
+        "500-level",
+        "formal-study-plan",
+        "registration"
+      ]
     },
     {
       "id": "8",
-      "title": "After Acceptance — Next Steps for New MS Students",
-      "summary": "1) Accept admission offer in the portal. 2) Find a thesis advisor before arriving — email faculty using your Cal Poly email. 3) Register for classes yourself — failure to register rescinds your offer (contact lfiorent@calpoly.edu for enrollment issues). 4) Complete Working Formal Study Plan in your first quarter.",
+      "title": "Blended B.S. + M.S. Program Eligibility",
+      "content": "Eligible undergraduate degrees:- B.S. Computer Science- B.S. Computer Engineering- B.S. Software EngineeringA **Minor in Computer Science does not make you eligible** for the BMS program.**GWR Requirement:**- Your GWR must show \"Complete\" on your PolyProfile before transitioning to graduate standing.- Being enrolled in a GWR course, or having received a passing grade, does **not** count — PolyProfile must show \"Complete.\" No exceptions.- GWR must be complete at least **one term before** you finish your B.S. requirements.- If GWR is not complete in time, Cal Poly will graduate you from your B.S. and you lose BMS eligibility permanently.**Timing:**- You are **not eligible** to join the BMS the same term you finish your B.S.- You must join **at least one term prior** to completing your B.S.By the term you submit the Blended Pathway Postbaccalaureate Change of Objective, you must have GWR and all lower-division degree requirements completed.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "onboarding", "registration", "thesis", "advisor", "study-plan"]
+      "tags": [
+        "ms",
+        "bms",
+        "gwr"
+      ]
     },
     {
       "id": "9",
-      "title": "Blended B.S. + M.S. (BMS) Program Overview",
-      "summary": "The BMS program lets upper-division undergrads complete the MS while finishing their BS (in CS, CE, or SE). Benefits: no application fee, double-count limited units, graduate facilities access, TA appointments, priority registration after 180 units. Same 45-unit MS structure. Must be at graduate standing for at least 2 terms before graduating. Min 2.5 SLO GPA to be accepted; maintain 3.0 GPA on Formal Study Plan.",
+      "title": "Applying to the Blended B.S. + M.S. Program",
+      "content": "Current Cal Poly students apply via the same **internal application process** as the MS program (see Chunk 4). The BMS program has stricter eligibility requirements.After the Graduate Admissions Committee recommends admission, the graduate coordinator will work with you to join either the BMS or MS program.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "degree-requirements", "eligibility", "gpa", "overview", "benefits"]
+      "tags": [
+        "ms",
+        "bms",
+        "admissions"
+      ]
     },
     {
       "id": "10",
-      "title": "BMS Program Catalog Unit Totals",
-      "summary": "Paired program degree unit totals (quarter): BS CS = 180, BS SE = 183, BS CPE = 191, MS CS = 45. You transition to graduate standing when your degree-applicable units exceed your BS total.",
+      "title": "Historical B.S. + M.S. Acceptance Rates",
+      "content": "The BMS program is also **impacted**.**AY 2023–2024 Statistics:**- Total Applications: 94- Total Admission Offers: 37- Acceptance Rate: **39%**---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "units", "transition", "degree-requirements", "bs", "ms"]
+      "tags": [
+        "bms",
+        "admissions"
+      ]
     },
     {
       "id": "11",
-      "title": "BMS Program Eligibility",
-      "summary": "Eligible BS degrees: BS Computer Science, BS Computer Engineering, BS Software Engineering. A CS Minor does NOT qualify. GWR must show 'Complete' on PolyProfile — being enrolled or having a passing grade is insufficient. GWR must be complete at least one term before finishing BS. You must join the BMS at least one term before finishing your BS.",
+      "title": "Finding a Thesis Advisor",
+      "content": "Selecting a thesis advisor is largely the student's responsibility. Two key factors:1. Can you work well with this person for a year-long project?2. Is the advisor an expert in your thesis topic?Start by approaching professors you've worked with in class or on research. If new to campus, email faculty directly using your Cal Poly email. Contact the graduate coordinator for recommendations by research area.Previous theses: https://digitalcommons.calpoly.edu/cscimt/---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "eligibility", "gwr", "timing", "polyprofile"]
+      "tags": [
+        "ms",
+        "bms",
+        "thesis"
+      ]
     },
     {
       "id": "12",
-      "title": "Applying to the BMS Program",
-      "summary": "Apply via the same internal CSSE process as the MS. BMS has stricter eligibility. Next deadline: April 13, 2026. After committee recommendation, the graduate coordinator works with you to join BMS or MS.",
+      "title": "Registering for Thesis Coursework",
+      "content": "**CSC 590** (Thesis Seminar) can be enrolled in like any regular course. Enroll earlier if you know your thesis topic.**CSC 596, 597, and 599** are supervisory courses requiring a different registration process:1. Identify and agree on a thesis advisor and topic.2. Fill out the online permission form (linked from https://csc.calpoly.edu/gr).3. Receive an AdobeSign document via email to complete.4. Department office issues a permission number.5. Repeat this process **every quarter** you're enrolled in a supervisory course.CSC 596 and CSC 597 must be completed **before** CSC 599.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "admissions", "application", "deadline"]
+      "tags": [
+        "ms",
+        "bms",
+        "thesis",
+        "registration"
+      ]
     },
     {
       "id": "13",
-      "title": "BMS Historical Acceptance Rates",
-      "summary": "BMS program is impacted. AY 2023–2024: 94 applications, 37 offers, 39% acceptance rate.",
+      "title": "Advisor Approved Technical Electives",
+      "content": "Both programs require **16 units** of graduate coordinator-approved electives at the **400- or 500-level**.**Pre-approved (no request needed):** Any CSC or CPE course at the 400- or 500-level, including EE courses cross-listed with CPE (e.g., EE/CPE 428).**External electives:** Courses outside CSC/CPE (e.g., advanced STAT for data science) may be approved but: you may not use more than **8 units** of external electives. You must verify approval with the graduate coordinator **before** taking the course.**Independent study restriction:** No more than **4 units** of independent study may count toward your degree. This includes CSC 400, CPE 400, CSC 500, CPE 500, any co-op units, and capstone units from a minor.Internship/co-op for credit info: https://csc.calpoly.edu/internship-credit/---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "admissions", "acceptance-rate", "impacted"]
+      "tags": [
+        "ms",
+        "bms",
+        "electives",
+        "units",
+        "500-level"
+      ]
     },
     {
       "id": "14",
-      "title": "Finding a Thesis Advisor",
-      "summary": "Student-driven process. Key factors: good working relationship and expertise match. Start by approaching professors from your classes. If new, email faculty using your Cal Poly email. Contact graduate coordinator for research area recommendations. Browse previous theses at https://digitalcommons.calpoly.edu/cscimt/.",
+      "title": "Double-Counting Courses (BMS Students)",
+      "content": "Double-counting is permitted under limited circumstances:- You can **never** double-count more than **9 units**- Your B.S. must have **more than 180 degree-applicable units** for each unit double-counted (e.g., need 189 units to double-count 9). This typically applies to CPE majors or students with computing-related minors.- You can only double-count **technical electives**, not required courses (e.g., CPE 464 cannot be double-counted for CPE majors)- The course must still meet all applicable degree requirements- Cannot list CSC 497 or CSC 498 as double-counted coursesMinor units (including data science minor) are **not** considered for double-counting eligibility.For specific edge cases, consult the CSSE graduate coordinator.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "thesis", "advisor", "research", "onboarding"]
+      "tags": [
+        "bms",
+        "electives",
+        "double-counting",
+        "units"
+      ]
     },
     {
       "id": "15",
-      "title": "Registering for Thesis Coursework",
-      "summary": "CSC 590 registers like any regular course. CSC 596, 597, and 599 require a permission number: agree on advisor/topic → fill out online form at csc.calpoly.edu/gr → receive AdobeSign doc → get permission number. Repeat each quarter in a supervisory course. 596+597 must come before 599.",
+      "title": "Data Science Minor Courses (BMS Students)",
+      "content": "Courses from the data science minor are **not eligible for double-counting**. However, some may be used as advisor-approved electives in the MS portion:- Up to 4 units of DATA 401- Up to 7 units of DATA 401/402/403- Up to 1 unit of STAT 419 or DATA 451 (catalog dependent) to reach an even multiple of 4 unitsIf you have a BS in Statistics with the Data Science minor, discuss options with the CSSE graduate coordinator.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "thesis", "registration", "csc590", "csc596", "csc597", "csc599", "permission-number"]
+      "tags": [
+        "bms",
+        "electives",
+        "double-counting",
+        "units"
+      ]
     },
     {
       "id": "16",
-      "title": "Advisor Approved Technical Electives",
-      "summary": "16 units required at 400- or 500-level. Pre-approved: any CSC or CPE course at those levels, including cross-listed EE/CPE courses (e.g., EE/CPE 428). External electives (outside CSC/CPE) may be approved but capped at 8 units — verify with grad coordinator BEFORE taking. No more than 4 units of independent study. Must get approval before enrolling in non-standard courses.",
+      "title": "Independent Study Courses",
+      "content": "CSSE policy: No more than **4 units** of independent study courses may count toward your MS or BMS degree.This includes: CSC-400, CPE-400, CSC-500, CPE-500, co-op units that are otherwise degree-applicable, and capstone units taken standalone or as part of a minor.For exceptions or questions, contact the graduate coordinator.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "electives", "400-level", "500-level", "independent-study", "advisor-approval"]
+      "tags": [
+        "ms",
+        "bms",
+        "units"
+      ]
     },
     {
       "id": "17",
-      "title": "Double-Counting Courses (BMS Only)",
-      "summary": "Rules: max 9 units double-counted; your BS must have 180+ degree-applicable units for each unit counted (need 189 units to count 9); only technical electives qualify, not required courses; CSC 497/498 cannot be double-counted; data science minor units are not eligible. Typically limited to CPE majors or those with computing-related minors.",
+      "title": "Courses Taken at Other Institutions (Pre-Matriculated Courses)",
+      "content": "Pre-matriculated courses (taken before enrolling in a graduate program at Cal Poly) may be used to satisfy degree requirements, with restrictions:- No more than **12 units** of pre-matriculated courses- Units must not have counted toward another degree- Each course must be individually approved by the graduate coordinatorAll approved pre-matriculated units must be officially transferred to Cal Poly (requires official transcript + evaluation request). Verify units appear in PolyProfile **at least 2 quarters before graduating**.Matriculation info: https://csc.calpoly.edu/gr/matriculation/---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "double-counting", "units", "policy", "cpe"]
+      "tags": [
+        "ms",
+        "bms",
+        "units",
+        "matriculation"
+      ]
     },
     {
       "id": "18",
-      "title": "Data Science Minor Courses",
-      "summary": "Data science minor courses cannot be double-counted but some qualify as advisor-approved electives: up to 4 units of DATA 401, up to 7 units of DATA 401/402/403, up to 1 unit of STAT 419 or DATA 451 to reach a multiple of 4 units. BS in Statistics + DS minor students should consult the graduate coordinator.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "data-science-minor", "electives", "double-counting"]
+      "title": "Quarter to Semester Conversion",
+      "content": "Cal Poly is converting to semesters starting **Fall 2026**. This affects course numbers and units:- Courses taken **Spring 2026 or earlier**: use quarter catalog and quarter course numbers (e.g., CSC 590, CSC 596, CSC 597, CSC 599)- Courses taken **Fall 2026 or later**: use semester catalog and semester course numbers (e.g., CSC 5590, CSC 5591, CSC 5599)Quarter catalog (2022-2026): https://catalog.calpoly.edu/previouscatalogs/2022-2026/coursesaz/csc/  Current (semester) catalog: https://catalog.calpoly.edu**BMS Curriculum Plan thesis course equivalents:**- Thesis Seminar: CSC 590 (1 quarter unit) → CSC 5590 (3 semester units)- Research I & II: CSC 596 + CSC 597 (2+2 quarter) → CSC 5591 (2 semester units)- Thesis: CSC 599 (4 quarter units) → CSC 5599 (4 semester units)At least **60% of units** must be at the 500/5000-level.---",
+      "sourceURL": "https://csc.calpoly.edu/gr/q2s/",
+      "tags": [
+        "ms",
+        "bms",
+        "thesis",
+        "units"
+      ]
     },
     {
       "id": "19",
-      "title": "Independent Study Course Limit",
-      "summary": "Maximum 4 units of independent study may count toward your degree. Includes CSC/CPE 400, CSC/CPE 500, co-op units, and minor capstone units. Contact grad coordinator for exceptions.",
+      "title": "How to Fill Out the Formal Study Plan",
+      "content": "Forms: https://grad.calpoly.edu/checklist-forms/forms.html  Matriculation info: https://csc.calpoly.edu/gr/matriculation/**Working Formal Study Plan:** Planning document, completed during first quarter. Not a binding contract.  **Final Formal Study Plan:** Filed when registered for your last class; this IS the binding contract used by Evaluations to confirm your degree.**Never include more than 45 units in your study plan.**The plan has four sections:**1. Pre-matriculated courses**- Max 12 units total- 400-level courses here reduce the 16-unit limit in the Cal Poly 400-level section- Must be pre-approved**2. Double-counted courses (BMS only)**- Max 9 units- Cannot list CSC 497 or 498- Must meet all eligibility criteria**3. Post-matriculated (PBAC) Cal Poly 400-level courses**- Max 16 units total- Cannot list CSC 497 or 498- Must be approved by the graduate coordinator**4. Post-matriculated (PBAC) Cal Poly 500-level courses**- BMS students who took 497 & 498: minimum 24 500-level CSC units + 5 units of thesis (CSC 590 & CSC 599)- All other students: minimum 20 500-level CSC units + 9 units of thesis (CSC 590, 596, 597, 599)---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "independent-study", "policy", "units", "coop"]
+      "tags": [
+        "ms",
+        "bms",
+        "thesis",
+        "double-counting",
+        "units",
+        "500-level",
+        "formal-study-plan",
+        "matriculation",
+        "registration"
+      ]
     },
     {
       "id": "20",
-      "title": "Courses Taken at Other Institutions (Pre-Matriculated)",
-      "summary": "Up to 12 units of pre-matriculated coursework allowed. Units must not have counted toward another degree and must be individually approved by the grad coordinator. Must be officially transferred to Cal Poly (official transcript + evaluation request). Verify they appear in PolyProfile at least 2 quarters before graduating.",
-      "sourceURL": "https://csc.calpoly.edu/gr/matriculation/",
-      "tags": ["ms", "bms", "transfer-credit", "pre-matriculated", "polyprofile", "units"]
+      "title": "Degree Requirement Check",
+      "content": "For an unofficial second opinion on degree progress:- **MS and BMS students:** Talk with the graduate coordinator to verify graduate degree requirements.- **BMS students (undergraduate requirements only):** Talk with Engineering Student Services — they can review undergraduate requirements but not graduate requirements.---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "ms",
+        "bms"
+      ]
     },
     {
       "id": "21",
-      "title": "Quarter to Semester Conversion (Q2S)",
-      "summary": "Cal Poly converts to semesters Fall 2026. Spring 2026 and earlier: use quarter catalog and course numbers. Fall 2026 and later: use semester catalog. Key equivalents — CSC 590 → CSC 5590 (3 sem units); CSC 596+597 → CSC 5591 (2 sem units); CSC 599 → CSC 5599 (4 sem units). At least 60% of units must be at 500/5000-level.",
-      "sourceURL": "https://csc.calpoly.edu/gr/q2s/",
-      "tags": ["ms", "bms", "semester-conversion", "q2s", "course-numbers", "fall-2026"]
+      "title": "Filling Out the Blended Curriculum Plan",
+      "content": "Required for the Campus BMS Application.**Pre-Blended Worksheet:**- Unit counts refer to degree-applicable units only (excludes minor/double-major courses not part of the blend)- Use your Degree Progress Report (DPR) to list all courses needed to complete your BS**Blended Curriculum Plan:**- First term in the plan = the term you're submitting the BMS Application (usually current term)- Transition term = the term your degree-applicable units pass the total required BS units- Double-counted courses go in the \"BEFORE\" box at the top**Required courses to include:**- Thesis Seminar (CSC 590 or CSC 5590)- Research in Computer Science (CSC 596+597 or CSC 5591, or extra 500-level coursework if you took 497+498)- Thesis (CSC 599 or CSC 5599)Use quarter catalog for Winter/Spring 2026 courses; semester catalog for Fall 2026 and later.---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "bms",
+        "admissions",
+        "thesis",
+        "double-counting",
+        "units",
+        "500-level"
+      ]
     },
     {
       "id": "22",
-      "title": "How to Fill Out the Formal Study Plan",
-      "summary": "Working Plan (completed first quarter) is a planning doc — not binding. Final Plan (filed when registering for last class) is the binding contract. Never exceed 45 units total. Four sections: (1) Pre-matriculated courses (max 12 units), (2) Double-counted courses — BMS only, max 9, no 497/498, (3) Post-matric 400-level courses (max 16, no 497/498), (4) Post-matric 500-level courses — all other students need min 20 500-level units + 9 thesis units. Forms at: https://grad.calpoly.edu/checklist-forms/forms.html.",
-      "sourceURL": "https://grad.calpoly.edu/checklist-forms/forms.html",
-      "tags": ["ms", "bms", "formal-study-plan", "paperwork", "graduation", "units"]
+      "title": "Deciding Which Courses Count for B.S. vs. M.S. (BMS)",
+      "content": "BMS students choose which courses appear on the Final Formal Study Plan (M.S.) vs. are left for the B.S. You can move courses between degrees any time before graduating, even if the course was taken before joining the BMS program.**Important considerations:**- The Final Formal Study Plan is a binding contract; the Working Plan is not.- The CS and SE undergraduate degrees require a **depth elective** (a 300- or 400-level elective with another 300/400-level prerequisite, except CSC 357). If you assign your only qualifying depth elective to your M.S. plan, you won't receive your B.S.- Only courses on the Final Study Plan are used to compute your **graduate GPA**.---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "bms",
+        "gpa",
+        "electives",
+        "formal-study-plan"
+      ]
     },
     {
       "id": "23",
-      "title": "Degree Requirement Check",
-      "summary": "MS and BMS students can get an unofficial second opinion from the graduate coordinator (bellardo@calpoly.edu). BMS students wanting undergraduate requirement review should contact Engineering Student Services — they handle BS requirements only, not graduate requirements.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "advising", "degree-check", "progress"]
+      "title": "When Did I Matriculate?",
+      "content": "**BMS students:** Matriculation date = when you started your B.S. at Cal Poly (first quarter as a freshman or first quarter after transferring). Joining the BMS program changes your degree objective but does **not** change your start date.**MS students:** Matriculation date = the quarter they started the M.S. program (whether coming from outside Cal Poly, returning after working, or continuing immediately after a Cal Poly B.S.).The 7-year rule for degree completion runs from your matriculation date into the graduate program.---",
+      "sourceURL": "https://csc.calpoly.edu/gr/matriculation/",
+      "tags": [
+        "ms",
+        "bms",
+        "matriculation",
+        "7-year-rule"
+      ]
     },
     {
       "id": "24",
-      "title": "Filling Out the BMS Curriculum Plan",
-      "summary": "Required for the BMS Campus Application. Use Degree Progress Report (DPR) to list BS courses. Transition term = when degree-applicable units exceed BS total. Double-counted courses go in 'BEFORE' box. Include all thesis courses. Use quarter catalog for Winter/Spring 2026; semester catalog for Fall 2026+.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "curriculum-plan", "paperwork", "application", "dpr"]
+      "title": "Example Theses",
+      "content": "All Cal Poly CS theses are archived and publicly available in the Cal Poly Digital Commons:  https://digitalcommons.calpoly.edu/cscimt/Use this to browse past work, understand scope expectations, or find thesis topics.---",
+      "sourceURL": "https://digitalcommons.calpoly.edu/cscimt/",
+      "tags": [
+        "ms",
+        "bms",
+        "thesis"
+      ]
     },
     {
       "id": "25",
-      "title": "Deciding Which Courses Count for B.S. vs. M.S. (BMS)",
-      "summary": "BMS students allocate courses to B.S. or M.S. via the Final Formal Study Plan. Can be changed any time before filing. Key caution: CS and SE BS degrees require a depth elective (300/400-level with another 300/400-level prereq, except CSC 357) — if you use your only qualifying depth elective for the MS, you won't earn your BS. Only Final Study Plan courses count toward graduate GPA.",
+      "title": "Scheduling Your Thesis Defense",
+      "content": "1. Work with your thesis committee to find a mutually available time — **at least five weeks before** your defense.2. Email time, date, thesis abstract, and committee member names to: computer-science@calpoly.edu **no sooner than two weeks prior** to the defense.3. The department will secure a room, post public announcements, and provide paperwork.---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["bms", "bs-ms-split", "formal-study-plan", "depth-elective", "gpa"]
+      "tags": [
+        "ms",
+        "bms",
+        "thesis"
+      ]
     },
     {
       "id": "26",
-      "title": "Matriculation Date",
-      "summary": "BMS students: matriculation date = when you started your BS at Cal Poly (freshman entry or transfer term). Joining BMS does NOT change it. MS students: matriculation date = when you started the MS program. The 7-year degree completion clock starts from your graduate matriculation date.",
-      "sourceURL": "https://csc.calpoly.edu/gr/matriculation/",
-      "tags": ["ms", "bms", "matriculation", "7-year-rule", "timeline"]
+      "title": "Graduation Information",
+      "content": "Commencement info: https://commencement.calpoly.edu/graduatesAfter your Application to Graduate is processed, you're assigned a ceremony based on your \"expected graduation\" date in PolyProfile. Students graduating in Summer are assigned to the prior Spring ceremony.You may request a different ceremony (e.g., walk twice — once for B.S. and once for M.S.) using the form at the commencement link. Deadline for name in the graduation program: **2nd week of Spring term.**---",
+      "sourceURL": "https://commencement.calpoly.edu/graduates",
+      "tags": [
+        "ms",
+        "bms",
+        "admissions",
+        "deadline"
+      ]
     },
     {
       "id": "27",
-      "title": "Academic GPA and Standing Requirements",
-      "summary": "Must maintain 3.0 overall GPA in all degree-applicable courses. Grades of C- (1.7) or higher count; D+ or lower can be retaken (both grades used in GPA). CR/NC courses require equivalent of B- or better to earn credit. Submit Working Formal Study Plan and Advancement to Candidacy form before end of first enrollment term.",
-      "sourceURL": "https://catalog.calpoly.edu/",
-      "tags": ["ms", "bms", "gpa", "academic-standing", "policies", "grades"]
+      "title": "Extending Your Time at Cal Poly",
+      "content": "Two key considerations:**1. Continuous Enrollment**You must be enrolled in Fall, Winter, and Spring each year, plus the term you graduate. If you've finished all coursework but still need time for your thesis, enroll in **GS 597** (cheapest option — 1 unit, Credit/No Credit, does not count toward degree). Form available on the continuous enrollment page. Alternatively, apply for a Leave of Absence.**Leave of Absence (LOA):**- Max duration: 1 academic year- Excuses continuous enrollment requirement but does **not** extend the 7-year degree completion limit- Eligible reasons: educational (co-op, study abroad), medical, military, personal (elder care, parental duties)- Must be filed before the leave begins; cannot be granted retroactively**2. Seven-Year Rule**All degree requirements must be completed within **7 years** of first matriculation into the graduate program. If you need an extension, submit a Petition for Special Consideration to Graduate Education including: reason, evidence of currency in field, updated Formal Study Plan, current thesis progress, and proposed completion term.If you've already filed your Application to Graduate and need to delay, also submit a **\"GRADUATE CHANGE OF DEGREE COMPLETION TERM REQUEST\"** form (found in the \"other\" section of the Graduate Education steps-to-graduation page).If near the 7-year limit, contact the graduate coordinator immediately: bellardo@calpoly.edu---",
+      "sourceURL": "https://csc.calpoly.edu/gr",
+      "tags": [
+        "ms",
+        "bms",
+        "admissions",
+        "thesis",
+        "units",
+        "formal-study-plan",
+        "matriculation",
+        "7-year-rule"
+      ]
     },
     {
       "id": "28",
-      "title": "Continuous Enrollment Policy",
-      "summary": "Must be enrolled every Fall, Winter, and Spring, plus the term you graduate. If you've finished coursework but need more thesis time, enroll in GS 597 (1 unit, CR/NC, cheapest option — does not count toward degree). Alternative: apply for a Leave of Absence (LOA). LOA max 1 academic year; excuses enrollment but does NOT extend the 7-year rule. Must file LOA before the leave begins.",
+      "title": "International Applicants: English Proficiency",
+      "content": "International applicants must meet all standard MS eligibility criteria and demonstrate English proficiency.**Accepted tests (taken within the last 2 years):**- **TOEFL:** Minimum 80 (internet-based). Cal Poly institution code: 4038- **IELTS:** Minimum 6.5- **Duolingo:** Minimum 115. Search for \"California Polytechnic State University - San Luis Obispo\"**Automatic waiver:** Graduate applicants who earned an undergraduate degree from a regionally accredited U.S. institution receive an automatic waiver.**Country-based automatic waivers include:** Antigua, Australia, Bahamas, Barbados, Belize, Bermuda, Canada (except Quebec), Cayman Islands, Dominica, Falkland Islands, Gambia, Ghana, Grenada, Guyana, Ireland, Jamaica, Kenya, Liberia, Mauritius, New Zealand, Scotland, Sierra Leone, Solomon Islands, South Africa, St. Lucia, Trinidad & Tobago, Uganda, United Kingdom, Zambia, Zimbabwe, and others.To request a waiver, mail or email official transcripts:- Mail: Cal Poly Transcript Processing, MC 1001, 1 Grand Avenue, San Luis Obispo, CA 93407- Email: cptrans1@calpoly.eduInternational Center resources: https://international.calpoly.edu/---",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "continuous-enrollment", "gs597", "leave-of-absence", "policies", "timeline"]
+      "tags": [
+        "ms",
+        "bms",
+        "units",
+        "international",
+        "english-proficiency"
+      ]
     },
     {
       "id": "29",
-      "title": "Seven-Year Degree Completion Rule",
-      "summary": "All degree requirements must be completed within 7 years of graduate matriculation. To extend: submit a Petition for Special Consideration to Graduate Education with reason, evidence of currency in field, updated Formal Study Plan, thesis progress, and proposed completion term. If you've already filed Application to Graduate, also file a 'GRADUATE CHANGE OF DEGREE COMPLETION TERM REQUEST.' Contact bellardo@calpoly.edu immediately if near the limit.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "7-year-rule", "extension", "policies", "timeline", "graduation"]
+      "title": "Academic Policies & Requirements (All Graduate Students)",
+      "content": "- Submit an approved **Working Formal Study Plan & Advancement to Candidacy Form** to Graduate Education (minimum 45 units) before the end of your **first term of enrollment**.- Maintain an overall **3.0 GPA** in all degree-applicable courses.- Only courses with C- (1.7) or higher can count toward your degree.- CR/NC courses that count use a B- or better standard.- Graduate courses must be completed while matriculated; they cannot be done through Open University or GS 597 (thesis courses in particular).- No more than **9 units** for thesis/project.- All requirements must be completed within **7 years** of first matriculation.- You must be enrolled during the term you complete your degree requirements.- A degree cannot be posted until the last day of the term requirements are completed.---",
+      "sourceURL": "https://catalog.calpoly.edu",
+      "tags": [
+        "ms",
+        "bms",
+        "gpa",
+        "thesis",
+        "units",
+        "formal-study-plan",
+        "matriculation"
+      ]
     },
     {
       "id": "30",
-      "title": "Scheduling and Completing Your Thesis Defense",
-      "summary": "Steps: (1) Find a time with your full committee at least 5 weeks before defense. (2) Email time, date, abstract, and committee names to computer-science@calpoly.edu no sooner than 2 weeks before defense. Department handles room booking, public announcement, and paperwork.",
+      "title": "MS Information Session Outline",
+      "content": "Key contacts:- Graduate Coordinator: John Bellardo (bellardo@calpoly.edu) — administer program, first point of contact- CSSE Department Chair: Aaron Keen- CSSE Grad Info: https://csc.calpoly.edu/gr- Graduate Education Office: https://grad.calpoly.edu/Curriculum summary:- 45 units total: 9 thesis + 20 at 500-level + 16 at 400/500-level- Thesis-only program- Estimated time to completion: **4–6 quarters**- Starting thesis quickly minimizes time in program- Semester conversion starts **Fall 2026**: https://csc.calpoly.edu/gr/q2s/Financial aid: Admission does not include financial aid. Complete FAFSA. See: https://grad.calpoly.edu/resources/financial-opportunities/financial-opportunities.htmlOther support resources:- Cal Poly Cares – Basic Needs Initiative- Disability Resource Center- Office of University Diversity and Inclusion- Dean of Students Office",
       "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "thesis-defense", "scheduling", "graduation", "committee"]
-    },
-    {
-      "id": "31",
-      "title": "Graduation and Commencement",
-      "summary": "After Application to Graduate is processed, you are auto-assigned a ceremony based on your expected graduation date in PolyProfile. Summer grads are assigned to the prior Spring ceremony. You can request a different ceremony (e.g., walk twice for BS + MS). Deadline to have your name in the graduation program: end of week 2 of Spring term. Commencement info: https://commencement.calpoly.edu/graduates.",
-      "sourceURL": "https://commencement.calpoly.edu/graduates",
-      "tags": ["ms", "bms", "graduation", "commencement", "application-to-graduate"]
-    },
-    {
-      "id": "32",
-      "title": "Extending Your Time at Cal Poly",
-      "summary": "Use GS 597 to maintain continuous enrollment without taking courses. File Leave of Absence for extended gaps (max 1 year; doesn't extend 7-year rule). If you've filed Application to Graduate, also submit a GRADUATE CHANGE OF DEGREE COMPLETION TERM REQUEST form. Contact the graduate coordinator immediately if approaching the 7-year limit.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "extension", "gs597", "leave-of-absence", "timeline", "7-year-rule"]
-    },
-    {
-      "id": "33",
-      "title": "International Applicants — English Proficiency",
-      "summary": "Tests accepted (taken within 2 years): TOEFL min 80 (institution code 4038), IELTS min 6.5, Duolingo min 115. Auto waiver for grads from regionally accredited US institutions. Country-based waivers for: Australia, Canada (ex-Quebec), UK, Ireland, New Zealand, South Africa, and others. Waiver requests require mailing official transcripts to Cal Poly Transcript Processing, MC 1001, 1 Grand Ave, SLO 93407 or email cptrans1@calpoly.edu.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "admissions", "international", "english-proficiency", "toefl", "ielts", "duolingo", "waiver"]
-    },
-    {
-      "id": "34",
-      "title": "Example Theses",
-      "summary": "Browse all Cal Poly CS theses at https://digitalcommons.calpoly.edu/cscimt/ to understand scope, find topics, or review past work.",
-      "sourceURL": "https://digitalcommons.calpoly.edu/cscimt/",
-      "tags": ["ms", "bms", "thesis", "examples", "research"]
-    },
-    {
-      "id": "35",
-      "title": "Key Contacts and Resources",
-      "summary": "Graduate Coordinator: John Bellardo — bellardo@calpoly.edu (program questions, elective approval, advisor matching, degree checks). Department: computer-science@calpoly.edu (thesis defense scheduling). Registration issues: lfiorent@calpoly.edu. Grad admissions (external): gradadmissions@calpoly.edu. Grad Education Office: https://grad.calpoly.edu/. CSSE Grad Info Hub: https://csc.calpoly.edu/gr.",
-      "sourceURL": "https://csc.calpoly.edu/gr",
-      "tags": ["ms", "bms", "contacts", "advising", "resources"]
+      "tags": [
+        "ms",
+        "bms",
+        "admissions",
+        "thesis",
+        "units",
+        "500-level"
+      ]
     }
   ]
 }
