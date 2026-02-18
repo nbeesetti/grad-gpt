@@ -1,13 +1,22 @@
+import gradio as gr
 import json
 import os
-from typing import Optional
 from dotenv import load_dotenv
-from google import genai
+from openai import AzureOpenAI
 
 load_dotenv()
 
-client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
-MODEL_ID = "gemini-2.5-flash-lite"
+endpoint = "https://gradgpt-openai.openai.azure.com/"
+deployment = "gradgpt-chat"
+api_version = "2024-12-01-preview"
+subscription_key = os.environ.get("Azure_API_Key")
+
+client = AzureOpenAI(
+    api_version=api_version,
+    azure_endpoint=endpoint,
+    api_key=subscription_key,
+)
+
 KB_JSON_PATH = "knowledge_base/degree_planning.json"
 
 TAG_EXTRACTION_PROMPT = """
@@ -52,14 +61,13 @@ KNOWLEDGE BASE (use only this information to answer):
 """
 
 
-def load_knowledge_base(path: str) -> list[dict]:
+def load_knowledge_base(path):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    # The JSON has a top-level "chunks" key containing the list we want.
     return data.get("chunks", [])
 
 
-def extract_all_tags(chunks: list[dict]) -> list[str]:
+def extract_all_tags(chunks):
     tag_set = set()
     for chunk in chunks:
         for tag in chunk.get("tags", []):
@@ -67,73 +75,86 @@ def extract_all_tags(chunks: list[dict]) -> list[str]:
     return sorted(tag_set)
 
 
-def extract_relevant_tags(query: str, all_tags: list[str]) -> list[str]:
+def azure_chat(system_message, user_message):
+    response = client.chat.completions.create(
+        model=deployment,
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
+        ],
+        max_completion_tokens=1024,
+    )
+
+    return response.choices[0].message.content
+
+def extract_relevant_tags(query, all_tags):
     prompt = TAG_EXTRACTION_PROMPT.format(
         query=query,
         available_tags=", ".join(all_tags)
     )
 
-    response = client.models.generate_content(model=MODEL_ID, contents=prompt)
-    raw = response.text.strip()
+    raw = azure_chat(
+        system_message="You extract structured JSON only.",
+        user_message=prompt
+    )
 
-    raw = raw.replace("```json", "").replace("```", "").strip()
+    raw = raw.strip().replace("```json", "").replace("```", "").strip()
 
-    parsed = json.loads(raw)
-    return parsed.get("selected_tags", [])
+    try:
+        parsed = json.loads(raw)
+        return parsed.get("selected_tags", [])
+    except:
+        return []
 
-
-def filter_chunks(
-    chunks: list[dict],
-    selected_tags: list[str],
-    limit: int = 8
-) -> list[dict]:
+def filter_chunks(chunks, selected_tags, limit=8):
     if not selected_tags:
         return chunks[:limit]
 
     selected_lower = [t.lower() for t in selected_tags]
-
     scored = []
+
     for chunk in chunks:
         chunk_tags = [t.lower() for t in chunk.get("tags", [])]
-        # Count how many selected tags appear in this chunk's tags.
         score = sum(1 for t in selected_lower if t in chunk_tags)
         if score > 0:
             scored.append((score, chunk))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-
     return [chunk for _, chunk in scored[:limit]]
 
 
-def build_knowledge_context(chunks: list[dict]) -> str:
+# Converting chunks into easier to read sections  
+def build_knowledge_context(chunks):
     if not chunks:
-        return (
-            "NO RELEVANT PROGRAM INFORMATION FOUND. "
-            "Direct the student to contact bellardo@calpoly.edu."
-        )
+        return "NO RELEVANT INFO FOUND. Contact bellardo@calpoly.edu"
 
     blocks = []
-    for i, chunk in enumerate(chunks, start=1):
+    for i, chunk in enumerate(chunks, 1):
         blocks.append(
             f"[{i}] {chunk['title']}\n"
-            f"    Info: {chunk['summary']}\n"
-            f"    Source: {chunk['sourceURL']}"
+            f"Info: {chunk['content']}\n"
+            f"Source: {chunk['sourceURL']}"
         )
 
     return "\n\n".join(blocks)
 
 
-def answer_student_query(query: str, knowledge_context: str) -> str:
-    prompt = DEGREE_PLANNING_PROMPT.format(
-        query=query,
-        knowledge_context=knowledge_context
+def answer_student_query(query, knowledge_context):
+    user_prompt = f"""
+        Student Question:
+        {query}
+
+        KNOWLEDGE BASE:
+        {knowledge_context}
+    """
+
+    return azure_chat( # Officially calling AI endpoint
+        system_message=DEGREE_PLANNING_PROMPT,
+        user_message=user_prompt
     )
 
-    response = client.models.generate_content(model=MODEL_ID, contents=prompt)
-    return response.text
 
-
-def run_degree_planning_agent(query: str) -> str:
+def run_degree_planning_agent(query):
     # Step 1: Load all knowledge chunks from the JSON file.
     chunks = load_knowledge_base(KB_JSON_PATH)
 
@@ -156,3 +177,32 @@ def run_degree_planning_agent(query: str) -> str:
     answer = answer_student_query(query, context)
 
     return answer
+
+
+def chat_with_gpt(message, history):
+    if history is None:
+        history = []
+
+    history.append(gr.ChatMessage(role="user", content=message))
+
+    try:
+        response = run_degree_planning_agent(message)
+    except Exception as e:
+        response = f"Error: {str(e)}"
+
+    history.append(gr.ChatMessage(role="assistant", content=response))
+
+    return history, ""
+
+with gr.Blocks() as demo:
+    gr.Markdown("# Welcome to Grad-GPT (Azure Version)")
+    gr.Markdown("Degree Planning RAG Agent using Azure OpenAI")
+
+    chatbot = gr.Chatbot(height=400)
+    chat_input = gr.Textbox(placeholder="Ask your degree planning question...")
+    send_button = gr.Button("Send")
+
+    send_button.click(chat_with_gpt, [chat_input, chatbot], [chatbot, chat_input])
+    chat_input.submit(chat_with_gpt, [chat_input, chatbot], [chatbot, chat_input])
+
+demo.launch()
