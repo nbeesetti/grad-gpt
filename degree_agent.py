@@ -3,6 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+from supabase import create_client, Client
 
 load_dotenv()
 
@@ -11,61 +12,61 @@ deployment = "gradgpt-chat"
 api_version = "2024-12-01-preview"
 subscription_key = os.environ.get("Azure_API_Key")
 
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+
+supabase: Client = create_client(supabase_url, supabase_key)
+
 client = AzureOpenAI(
     api_version=api_version,
     azure_endpoint=endpoint,
     api_key=subscription_key,
 )
 
-KB_JSON_PATH = "knowledge_base/degree_planning.json"
-
 TAG_EXTRACTION_PROMPT = """
 You are an academic advisor assistant for Cal Poly Computer Science MS and BMS students.
-
 A student has asked a question. Your job is to identify which topic tags
 from the AVAILABLE TAGS list best describe what the student is asking about.
-
 Rules:
 - ONLY choose tags from the AVAILABLE TAGS list below — never invent new ones
 - Return between 2 and 7 tags that best match the topic
 - Return ONLY valid JSON — no extra text, no explanation
 - Format: {{"selected_tags": ["tag1", "tag2"]}}
-
 Student's question:
 {query}
-
 AVAILABLE TAGS:
 {available_tags}
 """
 
 
 DEGREE_PLANNING_PROMPT = """
-You are an academic advisor assistant for Cal Poly Computer Science graduate students.
-You help students in the MS and Blended B.S. + M.S. (BMS) programs understand
-their degree requirements, plan their coursework, and navigate program policies.
-
+You are an academic advisor assistant for Cal Poly Computer Science MS and BMS students.
 IMPORTANT RULES:
-- Answer ONLY using the KNOWLEDGE BASE provided below
+- Answer ONLY using the KNOWLEDGE BASE provided
 - Never invent policies, deadlines, unit counts, or course numbers
-- Always cite the source URL for the information you use
-- If the answer is not in the knowledge base, say so and direct the student
-  to contact the graduate coordinator at bellardo@calpoly.edu
-- Be friendly, clear, and specific — students are often stressed about deadlines
+- Always cite source URLs
+- If information is not available, instruct the student to contact bellardo@calpoly.edu.
+- Be friendly, clear, and concise
 - When relevant, flag important warnings (e.g., GWR must be complete BEFORE finishing BS)
-
 Student's question:
 {query}
-
-KNOWLEDGE BASE (use only this information to answer):
+KNOWLEDGE BASE:
 {knowledge_context}
 """
 
+def load_knowledge_base_from_supabase():
+    response = (
+        supabase
+        .table("KnowledgeBase")
+        .select("*")
+        .contains("agentIds", ["3"])  # 3 = "degree progress agent"
+        .execute()
+    )
 
-def load_knowledge_base(path):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("chunks", [])
+    if response.data is None:
+        return []
 
+    return response.data
 
 def extract_all_tags(chunks):
     tag_set = set()
@@ -124,60 +125,55 @@ def filter_chunks(chunks, selected_tags, limit=8):
 
 
 # Converting chunks into easier to read sections  
-def build_knowledge_context(chunks):
+def build_knowledge_context(chunks, max_chars=4000):
     if not chunks:
         return "NO RELEVANT INFO FOUND. Contact bellardo@calpoly.edu"
 
     blocks = []
-    for i, chunk in enumerate(chunks, 1):
-        blocks.append(
-            f"[{i}] {chunk['title']}\n"
-            f"Info: {chunk['content']}\n"
-            f"Source: {chunk['sourceURL']}"
-        )
+    total_len = 0
 
-    return "\n\n".join(blocks)
+    for i, chunk in enumerate(chunks, 1):
+        block = f"[{i}] {chunk['title']}\nInfo: {chunk['content']}\nSource: {chunk['sourceURL']}\n\n"
+        if total_len + len(block) > max_chars:
+            break
+        blocks.append(block)
+        total_len += len(block)
+
+    return "".join(blocks)
 
 
 def answer_student_query(query, knowledge_context):
-    user_prompt = f"""
-        Student Question:
-        {query}
+    system_prompt = DEGREE_PLANNING_PROMPT.format(
+        query=query,
+        knowledge_context=knowledge_context
+    )
 
-        KNOWLEDGE BASE:
-        {knowledge_context}
-    """
-
-    return azure_chat( # Officially calling AI endpoint
-        system_message=DEGREE_PLANNING_PROMPT,
-        user_message=user_prompt
+    return azure_chat(
+        system_message=system_prompt,
+        user_message="Please answer based on the knowledge base provided above."
     )
 
 
 def run_degree_planning_agent(query):
-    # Step 1: Load all knowledge chunks from the JSON file.
-    chunks = load_knowledge_base(KB_JSON_PATH)
+    chunks = load_knowledge_base_from_supabase()
+    print(f"[DEBUG] Loaded {len(chunks)} chunks from Supabase")
 
-    # Step 2: Get every tag that exists across all chunks.
     all_tags = extract_all_tags(chunks)
+    print(f"[DEBUG] Total unique tags: {len(all_tags)}")
 
-    # Step 3: Use the AI to identify which tags are relevant to this question.
-    print(f"[Agent] Identifying relevant topics for: '{query}'")
     selected_tags = extract_relevant_tags(query, all_tags)
-    print(f"[Agent] Selected tags: {selected_tags}")
+    print(f"[DEBUG] Selected tags: {selected_tags}")
 
-    # Step 4: Keep only the chunks that match those tags.
     relevant_chunks = filter_chunks(chunks, selected_tags)
-    print(f"[Agent] Retrieved {len(relevant_chunks)} relevant knowledge chunks.")
+    print(f"[DEBUG] Retrieved {len(relevant_chunks)} relevant chunks")
 
-    # Step 5: Format the chunks into a readable context block.
     context = build_knowledge_context(relevant_chunks)
+    print(f"[DEBUG] Context length: {len(context)} characters")
 
-    # Step 6: Get the AI's answer using the student's question + context.
     answer = answer_student_query(query, context)
+    print(f"[DEBUG] Azure response: {answer}")
 
     return answer
-
 
 def chat_with_gpt(message, history):
     if history is None:
