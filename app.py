@@ -2,7 +2,7 @@ import gradio as gr
 import os
 from openai import AzureOpenAI
 from dotenv import load_dotenv
-
+import json
 # load env variables
 load_dotenv()
 
@@ -19,21 +19,69 @@ client = AzureOpenAI(
     api_key=subscription_key,
 )
 
-# System message to define agent behavior
-SYSTEM_MESSAGE = (
-    """os
-      You are a coordinator agent named Grad-GPT, designed to assist graduate students. You work in a system alongside three other agents:
-      1. The forms agent, responsible for user’s queries related to administrative requirements, deadlines, and forms relevant to the user’s current academic status and info as well as their graduation term.
-      2. The degree progess planning agent responsible for user’s queries related to degree progress and course planning
-      3. The resource agent, one of the backend “specialized” LLM agents and it is responsible for the user’s resource related queries. These queries mainly pertain to resources to help support their graduate research or thesis writing process.
 
-      Your role is to understand the user's queries and delegate them to the appropriate specialized agent, or in some cases you may need to delegate to multiple agents. You should analyze the user's input, determine which agent is best suited to handle the request, and forward the query accordingly. After receiving a response from the specialized agent, you should relay that information back to the user in a clear and concise manner.
-      Always ensure that the user feels supported and that their queries are addressed efficiently by leveraging the expertise of the specialized agents.
-      Remember to maintain a helpful and professional tone throughout the interaction.
+SYSTEM_MESSAGE = """
+You are the coordinator agent Grad-GPT for graduate students at Cal Poly SLO.
+Some background information -- You can assume that anyone you
+interact with is either a) a current CS MS student or b) a prospective CS MS student at Cal Poly SLO. Further, for current students, the Computer Science MS requires a thesis so don't ask if they are doing a thesis or not.  
 
-      For now, the other agents are not implemented, so respond to the user stating which agent (or agents) you would delegate the query to.
-      """
-)
+You work alongside three specialized agents:
+1. forms_agent → handles administrative forms, deadlines, graduation term requirements.
+2. degree_planning_agent → handles course planning and degree progress.
+3. resource_agent → handles research, literature, and compute resources.
+
+You must follow this reasoning process internally:
+
+Step 1: Determine user intent category.
+Step 2: Determine if clarification is needed.
+Step 3: Determine which agent(s) to call.
+Step 4: If multi-agent, decompose the question into subqueries.
+Step 5: If ready, delegate.
+
+Rules:
+
+- If clarification is needed, respond conversationally and ask a clarifying question.
+- If the question is clear and ready for delegation, DO NOT respond conversationally.
+- Instead, output ONLY valid JSON in the following format:
+- Keep the query concise and only include information that was requested by the student, do not ask for more information than what the student asked for in the original query. If you need to ask for more information, ask a clarifying question instead of delegating.
+
+{
+  "delegate": true,
+  "subqueries": [
+    {
+      "agent": "forms_agent | degree_planning_agent | resource_agent",
+      "query": "sub-question text"
+    }
+  ]
+}
+
+- If multiple agents are needed, include multiple subqueries.
+- Do not include any extra commentary when outputting JSON.
+- If you are still clarifying, respond normally in natural language.
+"""
+
+
+# System message for coordinator once receives responses from specialized agents
+SYNTHESIS_SYSTEM_MESSAGE = """
+You are Grad-GPT, the coordinator agent.
+
+You have received responses from specialized agents.
+Your job is to combine their information into a single, clear,
+well-structured, student-friendly response.
+
+Some background information -- You can assume that anyone you
+interact with is either a) a current CS MS student or b) a prospective CS MS student at Cal Poly SLO. Further, for current students, the Computer Science MS requires a thesis so don't ask if they are doing a thesis or not.
+
+Rules:
+- Do not mention agents.
+- Do not mention delegation.
+- Integrate the information logically.
+- Use clean formatting.
+- Be concise but helpful.
+- If multiple topics were addressed, organize with headings.
+- Do not include any information that was not provided by the agents.
+- Do not ask for any additional information from the student. Only include information that was provided by the agents in your response.
+"""
 
 
 def ask_assistant(user_message: str):
@@ -55,17 +103,120 @@ def chat_with_gpt(message, history):
     if history is None:
         history = []
 
-    # Add user message
     history.append(gr.ChatMessage(role="user", content=message))
 
-    # Call the real Azure OpenAI assistant
     assistant_response = ask_assistant(message)
 
-    # Add assistant response
+    # Try parsing JSON delegation
+    try:
+        parsed = json.loads(assistant_response)
+
+        if parsed.get("delegate") is True:
+            # Call delegation handler
+            final_response = handle_delegation(parsed, message)
+
+            history.append(gr.ChatMessage(
+                role="assistant", content=final_response))
+            return history, ""
+
+    except json.JSONDecodeError:
+        pass  # Not JSON,  normal conversation/ keep asking clarifying questions until we get delegation JSON
+
+    # Normal conversational response
     history.append(gr.ChatMessage(
         role="assistant", content=assistant_response))
-
+    print(f"History: {history}")
     return history, ""
+
+
+def synthesize_response(original_user_query, agent_responses):
+
+    formatted_input = f"""
+    The student asked:
+    {original_user_query}
+
+    The following information was gathered from specialized systems:
+
+    ---------------------
+    {agent_responses}
+    ---------------------
+
+    Combine this information into a clear, organized response.
+    """
+
+    response = client.chat.completions.create(
+        messages=[
+            {"role": "system", "content": SYNTHESIS_SYSTEM_MESSAGE},
+            {"role": "user", "content": formatted_input},
+        ],
+        max_completion_tokens=1500,
+        model=deployment
+    )
+
+    print("Raw synthesis response:", response)
+
+    return response.choices[0].message.content
+
+# TODO: Implement actual agent calls instead of placeholders
+
+
+def forms_agent(query):
+    return """
+Graduation Application:
+- Submit via the myportal
+- Deadline: Week 2 of final quarter
+
+Thesis Approval Form:
+- Signed by committee
+- Submit to Graduate Studies
+"""
+
+
+def degree_planning_agent(query):
+    return """
+Course Planning:
+Take CSC 590, CSC 599
+"""
+
+
+def resource_agent(query):
+    return """
+Read the paper "Attention is All You Need" for transformer models.
+Use Google Scholar for research.
+Use arXiv for preprints.
+"""
+
+
+def handle_delegation(parsed_json, original_user_query):
+    responses = []
+    print(f"Parsed JSON: {parsed_json}")
+
+    for sub in parsed_json["subqueries"]:
+        agent = sub["agent"]
+        query = sub["query"]
+
+        if agent == "forms_agent":
+            response = forms_agent(query)
+        elif agent == "degree_planning_agent":
+            response = degree_planning_agent(query)
+        elif agent == "resource_agent":
+            response = resource_agent(query)
+        else:
+            response = "Unknown agent."
+
+        responses.append(response)
+
+    combined_agent_output = "\n\n".join(responses)
+
+    print(f"Combined agent output before synthesis: {combined_agent_output}")
+    # Now synthesize
+    final_response = synthesize_response(
+        original_user_query,
+        combined_agent_output
+    )
+    print(f"Final synthesized response: {final_response}")
+
+    return final_response
 
 
 with gr.Blocks() as demo:
