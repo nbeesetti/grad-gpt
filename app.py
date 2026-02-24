@@ -3,6 +3,7 @@ import os
 from openai import AzureOpenAI
 from dotenv import load_dotenv
 import json
+from degree_agent import run_degree_planning_agent
 # load env variables
 load_dotenv()
 
@@ -198,7 +199,7 @@ def handle_delegation(parsed_json, original_user_query):
         if agent == "forms_agent":
             response = forms_agent(query)
         elif agent == "degree_planning_agent":
-            response = degree_planning_agent(query)
+            response = run_degree_planning_agent(query)
         elif agent == "resource_agent":
             response = resource_agent(query)
         else:
@@ -207,6 +208,7 @@ def handle_delegation(parsed_json, original_user_query):
         responses.append(response)
 
     combined_agent_output = "\n\n".join(responses)
+    # TODO -- if confidence score low, could loop again or try to ask more questions to the user before synthesizing, but for now just go straight to synthesis
 
     print(f"Combined agent output before synthesis: {combined_agent_output}")
     # Now synthesize
