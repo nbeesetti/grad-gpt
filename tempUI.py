@@ -1,6 +1,9 @@
 import gradio as gr
 import plotly.express as px
 
+import requests
+import pandas as pd
+
 # Temporary Information
 COURSES = {
     "CSC 508": ("Software Engineering I", 4),
@@ -33,6 +36,39 @@ COURSES = {
 
 COURSE_LIST = list(COURSES.keys())
 TOTAL_UNITS_REQUIRED = 45
+
+API_BASE = "http://localhost:8000"
+
+def fetch_notifications(user_id):
+    response = requests.get(f"{API_BASE}/notifications/{user_id}")
+    data = response.json()
+
+    formatted = []
+
+    for n in data:
+        formatted.append([
+            n["id"],  # store ID
+            n.get("due_date"),
+            n["NotificationRules"]["message"],
+            n.get("read")
+        ])
+
+    df = pd.DataFrame(
+        formatted,
+        columns=["ID", "Due Date", "Message", "Read"]
+    )
+
+    return df
+
+
+def sync_and_refresh(df):
+    for _, row in df.iterrows():
+        if row["Read"] is True:
+            requests.post(
+                f"{API_BASE}/notifications/read/{row['ID']}"
+            )
+
+    return fetch_notifications(1)
 
 # Needs better logic to accurately not just reflect 45 units but matches all the required classes needed
 # in the 45 units i.e. need to take 599...
@@ -121,33 +157,38 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
         with gr.Column(scale=2):
             gr.Markdown("## Notifications")
 
-            notif_df = gr.Dataframe(
-                headers=[
-                    "Due Date",
-                    "Message", "Read"
-                ],
-                datatype=[
-                    "date",
-                    "str", "bool"
-                ],
-                value=[
-                    ["2026-03-15",
-                     "Submit Thesis Proposal", False],
+            # notif_df = gr.Dataframe(
+            #     headers=[
+            #         "Due Date",
+            #         "Message", "Read"
+            #     ],
+            #     datatype=[
+            #         "date",
+            #         "str", "bool"
+            #     ],
+            #     value=[
+            #         ["2026-03-15",
+            #          "Submit Thesis Proposal", False],
 
-                    ["2026-02-01",
-                     "Register for Spring", True]
-                ],
+            #         ["2026-02-01",
+            #          "Register for Spring", True]
+            #     ],
+            #     interactive=True
+            # )
+
+            notif_df = gr.Dataframe(
+                headers=["ID", "Due Date", "Message", "Read"],
+                datatype=["number", "date", "str", "bool"],
                 interactive=True
             )
 
             update_notif_btn = gr.Button("Update Notifications")
 
             update_notif_btn.click(
-                update_notifications,
+                sync_and_refresh,
                 notif_df,
                 notif_df
             )
-
 
 
     # Courses
