@@ -1,0 +1,49 @@
+{
+  "lastUpdated": "02-17-2026",
+  "forms": [
+    {
+      "id": "4",
+      "title": "Working Formal Study Plan Form",
+      "content": "Form required to apply for graduation the first term of your graduate degree to advance to candidacy.",
+      "sourceURL": "https://adobesign.calpoly.edu/PowerForm/3AAABLblqZhBPGFCzw_2fKxfPeiRJFkJFQAaINCTWuutg2R5Qtd9ru7uv6vYin6bxELKnRtRiO0y8ZSDE4mm2rIMMTSL_vOXM/",
+      "category": "Candidacy",
+      "tags": ["graduation", "required", "working"],
+      "deadline": "2025-10-24",
+      "term": "Fall 2025",
+      "appliesTo": ["CSC-BMS", "CSC-MS"]
+    },
+    {
+      "id": "4",
+      "title": "Request for Degree Evaluation Form",
+      "content": "Request for an evaluation of your degree progress to determine if you are ready to graduate.",
+      "sourceURL": "https://adobesign.calpoly.edu/PowerForm/3AAABLblqZhBzWJ-ZnqaWXjleVFEmQH185gQsDpgv6w8olQxB1ol4WiKawrKR05dcjiUij57B66hLLDo8nydphVIiURESt32P/",
+      "category": "Graduation",
+      "tags": ["evaluation", "graduation", "required"],
+      "deadline": "2026-05-01",
+      "term": "Spring 2026",
+      "appliesTo": ["CSC-BMS", "CSC-MS"]
+    },
+    {
+      "id": "4",
+      "title": "Culminating Experience Form",
+      "content": "Approval by graduate advisor and thesis committee for your culminating experience (thesis or project) to be completed in the final term of your graduate degree.",
+      "sourceURL": "https://adobesign.calpoly.edu/PowerForm/3AAABLblqZhCUeCt__R46ttEpiaVsnYprp1MARRJgxGPjHwwSceXGW3_paaGe0hpQE3gxl3KdF_XFr2smml5juW-845UcBtdM/",
+      "category": "Graduation",
+      "tags": ["thesis", "graduation", "required"],
+      "deadline": "2026-06-12",
+      "term": "Spring 2026",
+      "appliesTo": ["CSC-BMS", "CSC-MS"]
+    },
+    {
+      "id": "4",
+      "title": "Commencement Ceremony Request Form",
+      "content": "Request to participate in the commencement ceremony for your graduation to ensure your name is included.",
+      "sourceURL": "https://adobesign.calpoly.edu/PowerForm/3AAABLblqZhCUeCt__R46ttEpiaVsnYprp1MARRJgxGPjHwwSceXGW3_paaGe0hpQE3gxl3KdF_XFr2smml5juW-845UcBtdM/",
+      "category": "Commencement",
+      "tags": ["commencement", "graduation"],
+      "deadline": "2026-04-22",
+      "term": "Spring 2026",
+      "appliesTo": ["CSC-BMS", "CSC-MS"]
+    }
+  ]
+}
