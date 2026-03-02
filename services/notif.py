@@ -33,6 +33,20 @@ def create_notification(user_id, rule):
         "created_at": datetime.now().isoformat()
     }).execute()
 
+# helper to compare if current term is after term offset for notif
+def term_to_number(term_string):
+    term, year = term_string.split()
+    year = int(year)
+
+    term_map = {
+        "Winter": 0,
+        "Spring": 1,
+        "Summer": 2,
+        "Fall": 3,
+    }
+
+    return year * 4 + term_map[term]
+
 def get_current_term():
     today = date.today()
     year = today.year
@@ -86,13 +100,9 @@ def evaluate_rules(user):
                 continue
 
             course_code = rule.get("required_course")
-            print("course_code", course_code)
             if course_code:
-                for course in course_code:
-                    print("course", course)
-                    if course not in user["completedCourses"]:
-                        print("continue")
-                        continue
+                if not all(course in user["completedCourses"] for course in course_code):
+                    continue 
 
             current_year = today.year
             due_date = date(current_year, month, day)
@@ -113,20 +123,15 @@ def evaluate_rules(user):
                 continue
 
             course_code = rule.get("required_course")
-            print("course_code", course_code)
             if course_code:
-                for course in course_code:
-                    print("course", course)
-                    if course not in user["completedCourses"]:
-                        print("continue")
-                        continue
+                if not all(course in user["completedCourses"] for course in course_code):
+                    continue 
 
             calculated_term = apply_term_offset(target_term, term_offset)
 
             current_term = get_current_term()
             
-
-            if current_term == calculated_term:
+            if term_to_number(current_term) >= term_to_number(calculated_term):
                 should_trigger = True
        
         # if the notification's due date is based on program start term (e.g. form due during program start term)
@@ -138,19 +143,14 @@ def evaluate_rules(user):
                 continue
 
             course_code = rule.get("required_course")
-            print("course_code", course_code)
             if course_code:
-                for course in course_code:
-                    print("course", course)
-                    if course not in user["completedCourses"]:
-                        print("continue")
-                        continue
+                if not all(course in user["completedCourses"] for course in course_code):
+                    continue  
 
             calculated_term = apply_term_offset(start_term, term_offset)
             current_term = get_current_term()
 
-
-            if current_term == calculated_term:
+            if term_to_number(current_term) >= term_to_number(calculated_term):
                 should_trigger = True
 
         # Create notification
@@ -162,7 +162,7 @@ def get_active_notifications(user_id):
     response = (
         supabase
         .table("Notifications")
-        .select("*, NotificationRules(message)")
+        .select("*, NotificationRules(message, month, day, due_date)")
         .eq("userId", user_id)
         .eq("read", False)
         .execute()
