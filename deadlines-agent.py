@@ -3,6 +3,8 @@ import json
 import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+from supabase import create_client, Client
+
 
 load_dotenv()
 
@@ -11,13 +13,16 @@ deployment = "gradgpt-chat"
 api_version = "2024-12-01-preview"
 subscription_key = os.environ.get("Azure_API_Key")
 
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+
+supabase: Client = create_client(supabase_url, supabase_key)
+
 client = AzureOpenAI(
     api_version=api_version,
     azure_endpoint=endpoint,
     api_key=subscription_key,
 )
-
-KB_JSON_PATH = "knowledge_base/deadlines.json"
 
 TAG_EXTRACTION_PROMPT = """
 You are an academic advisor assistant for Cal Poly Computer Science MS and BMS students.
@@ -66,16 +71,24 @@ KNOWLEDGE BASE (use only this information to answer):
 """
 
 
-def load_knowledge_base(path):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("forms", [])
+def load_knowledge_base_from_supabase():
+    response = (
+        supabase
+        .table("KnowledgeBase")
+        .select("*")
+        .contains("agentIds", ["3"])  # 3 = "degree progress agent"
+        .execute()
+    )
 
+    if response.data is None:
+        return []
 
-def extract_all_tags(forms):
+    return response.data
+
+def extract_all_tags(chunks):
     tag_set = set()
-    for form in forms:
-        for tag in form.get("tags", []):
+    for chunk in chunks:
+        for tag in chunk.get("tags", []):
             tag_set.add(tag.lower())
     return sorted(tag_set)
 
@@ -87,8 +100,11 @@ def azure_chat(system_message, user_message):
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message},
         ],
-        max_completion_tokens=1024,
+        max_completion_tokens=2048,
     )
+    print("FULL RESPONSE:", response)
+    print("CHOICE OBJECT:", response.choices[0])
+    print("MESSAGE OBJECT:", response.choices[0].message)
 
     return response.choices[0].message.content
 
@@ -111,93 +127,76 @@ def extract_relevant_tags(query, all_tags):
     except:
         return []
 
-def filter_forms(forms, selected_tags, limit=8):
+def filter_chunks(chunks, selected_tags, limit=8):
     if not selected_tags:
-        return forms[:limit]
+        return chunks[:limit]
 
     selected_lower = [t.lower() for t in selected_tags]
     scored = []
 
-    for form in forms:
-        form_tags = [t.lower() for t in form.get("tags", [])]
-        score = sum(1 for t in selected_lower if t in form_tags)
+    for chunk in chunks:
+        chunk_tags = [t.lower() for t in chunk.get("tags", [])]
+        score = sum(1 for t in selected_lower if t in chunk_tags)
         if score > 0:
-            scored.append((score, form))
+            scored.append((score, chunk))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [form for _, form in scored[:limit]]
+    return [chunk for _, chunk in scored[:limit]]
 
 
-# Converting forms into easier to read sections  
-def build_knowledge_context(forms):
-    if not forms:
+# Converting chunks into easier to read sections  
+def build_knowledge_context(chunks, max_chars=4000):
+    if not chunks:
         return "NO RELEVANT INFO FOUND. Contact bellardo@calpoly.edu"
 
     blocks = []
-    for i, form in enumerate(forms, 1):
-        blocks.append(
-            f"[{i}] {form['title']}\n"
-            f"Description: {form['content']}\n"
-            f"Deadline: {form.get('deadline', 'Not specified')}\n"
-            f"Term: {form.get('term', 'Not specified')}\n"
-            f"Applies To: {', '.join(form.get('appliesTo', []))}\n"
-            f"Official URL: {form['sourceURL']}"
-        )
+    total_len = 0
 
-    return "\n\n".join(blocks)
+    for i, chunk in enumerate(chunks, 1):
+        block = f"[{i}] {chunk['title']}\nInfo: {chunk['content']}\nSource: {chunk['sourceURL']}\n\n"
+        if total_len + len(block) > max_chars:
+            break
+        blocks.append(block)
+        total_len += len(block)
+
+    return "".join(blocks)
 
 
 def answer_student_query(query, knowledge_context):
-    user_prompt = f"""
-        Student Question:
-        {query}
-
-        KNOWLEDGE BASE:
-        {knowledge_context}
-    """
-
-    return azure_chat( # Officially calling AI endpoint
-        system_message=DEADLINES_PROMPT,
-        user_message=user_prompt
+    system_prompt = DEADLINES_PROMPT.format(
+        query=query,
+        knowledge_context=knowledge_context
     )
 
-# def answer_student_query(query, knowledge_context):
-#     formatted_system_prompt = DEADLINES_PROMPT.format(
-#         query=query,
-#         knowledge_context=knowledge_context
-#     )
-
-#     return azure_chat(
-#         system_message=formatted_system_prompt,
-#         user_message="Answer the student's question."
-#     )
+    return azure_chat(
+        system_message=system_prompt,
+        user_message="Please answer based on the knowledge base provided above."
+    )
 
 
 def run_forms_and_deadlines_agent(query):
-    # Step 1: Load all knowledge forms from the JSON file.
-    forms = load_knowledge_base(KB_JSON_PATH)
+    chunks = load_knowledge_base_from_supabase()
+    print(f"[DEBUG] Loaded {len(chunks)} chunks from Supabase")
 
-    # Step 2: Get every tag that exists across all forms.
-    all_tags = extract_all_tags(forms)
+    all_tags = extract_all_tags(chunks)
+    print(f"[DEBUG] Total unique tags: {len(all_tags)}")
 
-    # Step 3: Use the AI to identify which tags are relevant to this question.
-    print(f"[Agent] Identifying relevant topics for: '{query}'")
     selected_tags = extract_relevant_tags(query, all_tags)
-    print(f"[Agent] Selected tags: {selected_tags}")
+    print(f"[DEBUG] Selected tags: {selected_tags}")
 
-    # Step 4: Keep only the forms that match those tags.
-    relevant_forms = filter_forms(forms, selected_tags)
-    print(f"[Agent] Retrieved {len(relevant_forms)} relevant knowledge forms.")
+    relevant_chunks = filter_chunks(chunks, selected_tags)
+    print(f"[DEBUG] Retrieved {len(relevant_chunks)} relevant chunks")
 
-    # Step 5: Format the forms into a readable context block.
-    context = build_knowledge_context(relevant_forms)
+    context = build_knowledge_context(relevant_chunks)
+    print(f"[DEBUG] Context length: {len(context)} characters")
 
-    # Step 6: Get the AI's answer using the student's question + context.
     answer = answer_student_query(query, context)
+    print(f"[DEBUG] Azure response: {answer}")
 
     return answer
 
 
+#keep
 def chat_with_gpt(message, history):
     if history is None:
         history = []
