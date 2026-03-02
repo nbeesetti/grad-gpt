@@ -19,9 +19,9 @@ def read_notification(notification_id: str):
     return {"message": "Notification marked as read"}
 
 class CourseUpdate(BaseModel):
-    completed: List[str]
-    current: List[str]
-    planned: List[str]
+    completed: List[str] = []
+    current: List[str] = []
+    planned: List[str] = []
 
 @app.post("/users/{user_id}/courses")
 def update_user_courses(user_id: int, payload: CourseUpdate):

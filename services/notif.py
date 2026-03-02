@@ -15,6 +15,88 @@ def get_notification_rules():
     response = supabase.table("NotificationRules").select("*").execute()
     return response.data
 
+# Delete or mark as read notifications that no longer should be triggered
+def remove_stale_notifications(user):
+    user_id = user["id"]
+    active_notifications = supabase.table("Notifications") \
+        .select("*, NotificationRules(*)") \
+        .eq("userId", user_id) \
+        .eq("read", False) \
+        .execute().data
+
+    completed = user.get("completedCourses") or []
+
+    today = date.today()
+
+    for notif in active_notifications:
+        rule = notif["NotificationRules"]
+        trigger_type = rule.get("trigger_type")
+        stale = False
+
+        # Universal stale rule
+        notif_type = rule.get("type")
+        if notif_type == "course":
+            target_course = rule.get("name")
+            print("target course name", target_course)
+
+            # If the course is already completed -> remove notification
+            if target_course and target_course in completed:
+                stale = True
+
+        # Annual date notifications
+        if trigger_type == "annual_date":
+            month = rule.get("month")
+            day = rule.get("day")
+            course_code = rule.get("required_course") or []
+
+            if not all(course in completed for course in course_code):
+                stale = True
+            elif month and day:
+                due_date = date(today.year, month, day)
+                show_days = rule.get("show_days_before") or 0
+                show_date = due_date - timedelta(days=show_days)
+                if not (show_date <= today <= due_date):
+                    stale = True
+            else:
+                stale = True
+
+        # Graduation-based notifications
+        elif trigger_type == "graduation_based":
+            target_term = user.get("graduationTarget")
+            term_offset = rule.get("term_offset")
+            course_code = rule.get("required_course") or []
+
+            if not target_term or term_offset is None:
+                stale = True
+            elif not all(course in completed for course in course_code):
+                stale = True
+            else:
+                calculated_term = apply_term_offset(target_term, term_offset)
+                current_term = get_current_term()
+                if term_to_number(current_term) < term_to_number(calculated_term):
+                    stale = True
+
+        # Program start-based notifications
+        elif trigger_type == "program_start_based":
+            start_term = user.get("startTerm")
+            term_offset = rule.get("term_offset")
+            course_code = rule.get("required_course") or []
+
+            if not start_term or term_offset is None:
+                stale = True
+            elif not all(course in completed for course in course_code):
+                stale = True
+            else:
+                calculated_term = apply_term_offset(start_term, term_offset)
+                current_term = get_current_term()
+                if term_to_number(current_term) < term_to_number(calculated_term):
+                    stale = True
+
+        # Delete if stale
+        if stale:
+            supabase.table("Notifications").delete().eq("id", notif["id"]).execute()
+
+
 # Check if notification already exists
 def notification_exists(user_id, rule_id):
     response = supabase.table("Notifications") \
@@ -87,9 +169,16 @@ def evaluate_rules(user):
     rules = get_notification_rules()
     today = date.today()
 
+    completed = user.get("completedCourses") or []
+
     for rule in rules:
         should_trigger = False
         trigger_type = rule.get("trigger_type")
+
+        # DO NOT CREATE if target course already completed
+        target_course = rule.get("name")
+        if target_course and target_course in completed:
+            continue
 
         # if the notification's due date is on an annual date (e.g. every year on oct. 10)
         if trigger_type == "annual_date":
@@ -101,7 +190,7 @@ def evaluate_rules(user):
 
             course_code = rule.get("required_course")
             if course_code:
-                if not all(course in user["completedCourses"] for course in course_code):
+                if not all(course in completed for course in course_code):
                     continue 
 
             current_year = today.year
@@ -124,7 +213,7 @@ def evaluate_rules(user):
 
             course_code = rule.get("required_course")
             if course_code:
-                if not all(course in user["completedCourses"] for course in course_code):
+                 if not all(course in completed for course in course_code):
                     continue 
 
             calculated_term = apply_term_offset(target_term, term_offset)
@@ -144,8 +233,8 @@ def evaluate_rules(user):
 
             course_code = rule.get("required_course")
             if course_code:
-                if not all(course in user["completedCourses"] for course in course_code):
-                    continue  
+                if not all(course in completed for course in course_code):
+                    continue 
 
             calculated_term = apply_term_offset(start_term, term_offset)
             current_term = get_current_term()
@@ -181,5 +270,10 @@ def mark_as_read(notification_id):
 # Main entry point
 def generate_notifications(user_id):
     user = get_user_profile(user_id)
+
+    # Remove notifications that are no longer valid
+    remove_stale_notifications(user)
+
+    # Then create new ones as usual
     evaluate_rules(user)
     return get_active_notifications(user_id)

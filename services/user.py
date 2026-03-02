@@ -1,21 +1,6 @@
 from db import supabase
 from services.notif import get_current_term
 
-# def update_courses_in_db(user_id, payload):
-#     response = (
-#         supabase
-#         .table("Users")
-#         .update({
-#             "completedCourses": payload.completed,
-#             "currentCourses": payload.current,
-#             "plannedCourses": payload.planned
-#         })
-#         .eq("id", user_id)
-#         .execute()
-#     )
-
-#     return {"status": "success"}
-
 def handle_term_transition(user_id):
 
     current_term = get_current_term()
@@ -44,7 +29,7 @@ def handle_term_transition(user_id):
         completed = set(user.get("completedCourses") or [])
         current = set(user.get("currentCourses") or [])
 
-        # Move current → completed
+        # Move current -> completed
         updated_completed = completed.union(current)
 
         # Clear current
