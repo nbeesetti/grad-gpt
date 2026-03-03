@@ -32,19 +32,26 @@ def remove_stale_notifications(user):
         rule = notif["NotificationRules"]
         trigger_type = rule.get("trigger_type")
         stale = False
+        notif_type = rule.get("type")
 
         # Universal stale rule
-        notif_type = rule.get("type")
         if notif_type == "course":
             target_course = rule.get("name")
-            print("target course name", target_course)
 
             # If the course is already completed -> remove notification
             if target_course and target_course in completed:
                 stale = True
 
+        # Status cleanup rule
+        if trigger_type == "status_based":
+            required_status = "Undergraduate"
+            current_status = user.get("status")
+
+            if current_status != required_status:
+                stale = True
+
         # Annual date notifications
-        if trigger_type == "annual_date":
+        elif trigger_type == "annual_date":
             month = rule.get("month")
             day = rule.get("day")
             course_code = rule.get("required_course") or []
@@ -179,7 +186,7 @@ def evaluate_rules(user):
 
         # for students that are planning on applying to the grad program
         if rule.get("trigger_type") == "status_based":
-            required_status = "undergraduate"  # e.g. "undergrad"
+            required_status = "Undergraduate"  # e.g. "undergrad"
 
             if user_status == required_status:
                 should_trigger = True

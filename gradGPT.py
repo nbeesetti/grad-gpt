@@ -154,7 +154,7 @@ def load_user_state(email):
     # Get degree progress plot
     progress_plot = update_progress(completed)
 
-    return completed, current, planned, notif_df, progress_plot
+    return completed, current, planned, notif_df, progress_plot, user.get("status") or "Undergraduate"
 
 def login_user(email):
     if not email or "@" not in email:
@@ -183,7 +183,7 @@ def login_user(email):
         graduation_quarter = response.data[0].get("graduationTarget", "")
         start_term = response.data[0].get("startTerm", "")
 
-    completed, current, planned, notif_df, progress_plot = load_user_state(email)
+    completed, current, planned, notif_df, progress_plot, status_input = load_user_state(email)
     return (
         gr.update(visible=False),
         gr.update(visible=True),
@@ -195,7 +195,8 @@ def login_user(email):
         current, 
         planned,
         notif_df,
-        progress_plot
+        progress_plot,
+        status_input
     )
 
 # Needs better logic to accurately not just reflect 45 units but matches all the required classes needed
@@ -263,13 +264,14 @@ def update_notifications(df):
 
     return df
 
-def update_profile(email, start_term_input, grad_term_input):
+def update_profile(email, start_term_input, grad_term_input, status_input):
     if not email:
         return "No user logged in."
 
     supabase.table("Users").update({
         "startTerm": start_term_input,
-        "graduationTarget": grad_term_input
+        "graduationTarget": grad_term_input,
+        "status": status_input 
     }).eq("email", email).execute()
     
 with gr.Blocks(title="GradGPT Dashboard") as demo:
@@ -297,11 +299,16 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 email_display = gr.Textbox(label="Email", interactive=False)
                 start_term_input = gr.Textbox(label="Start Term",)
                 grad_term_input = gr.Textbox(label="Graduation Term")
+                status_input = gr.Dropdown(
+                    label="Status",
+                    choices=["Undergraduate", "Graduate"],
+                    value=""  
+                )
 
                 greet_btn = gr.Button("Save Profile")
                 greet_btn.click(
                     update_profile,
-                    inputs=[user_state, start_term_input, grad_term_input],
+                    inputs=[user_state, start_term_input, grad_term_input, status_input],
                     outputs=None
                 )
 
@@ -422,7 +429,8 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
             current,
             planned,
             notif_df,
-            progress_plot
+            progress_plot,
+            status_input
         ]
     )
 
