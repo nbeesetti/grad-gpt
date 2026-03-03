@@ -5,6 +5,5 @@ plotly
 fastapi
 pydantic
 supabase
-os
 requests
 pandas

@@ -175,6 +175,17 @@ def evaluate_rules(user):
         should_trigger = False
         trigger_type = rule.get("trigger_type")
 
+        user_status = user.get("status")
+
+        # for students that are planning on applying to the grad program
+        if rule.get("trigger_type") == "status_based":
+            required_status = "undergraduate"  # e.g. "undergrad"
+
+            if user_status == required_status:
+                should_trigger = True
+            else:
+                continue  # Don't create
+
         # DO NOT CREATE if target course already completed
         target_course = rule.get("name")
         if target_course and target_course in completed:
