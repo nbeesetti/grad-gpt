@@ -1,7 +1,10 @@
+from urllib import response
+
 import gradio as gr
 from dotenv import load_dotenv
 import plotly.express as px
 from supabase import create_client, Client
+from coordinator import process_message
 import os
 
 load_dotenv()
@@ -44,6 +47,7 @@ COURSES = {
 COURSE_LIST = list(COURSES.keys())
 TOTAL_UNITS_REQUIRED = 45
 
+
 def login_user(email):
     if not email or "@" not in email:
         return (
@@ -82,6 +86,8 @@ def login_user(email):
 
 # Needs better logic to accurately not just reflect 45 units but matches all the required classes needed
 # in the 45 units i.e. need to take 599...
+
+
 def calculate_units(course_list):
     total = 0
 
@@ -91,12 +97,13 @@ def calculate_units(course_list):
 
     return total
 
+
 def generate_response(question):
     # Placeholder for LLM / Agent integration
     if question.strip() == "":
         return "Please enter a question."
-    
     return f"You asked: '{question}'.\n(This will be handled by GradGPT agents.)"
+
 
 def update_progress(completed):
 
@@ -124,7 +131,6 @@ def update_progress(completed):
     return fig
 
 
-
 def style_notifications(df):
 
     if df is None or len(df) == 0:
@@ -145,6 +151,7 @@ def update_notifications(df):
 
     return df
 
+
 def update_profile(email, start_term_input, grad_term_input):
     if not email:
         return "No user logged in."
@@ -153,7 +160,8 @@ def update_profile(email, start_term_input, grad_term_input):
         "startTerm": start_term_input,
         "graduationTarget": grad_term_input
     }).eq("email", email).execute()
-    
+
+
 with gr.Blocks(title="GradGPT Dashboard") as demo:
 
     user_state = gr.State(None)
@@ -164,10 +172,8 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
         email_input = gr.Textbox(label="Email")
         login_btn = gr.Button("Continue")
 
-
     with gr.Column(visible=False) as dashboard_group:
         gr.Markdown("# GradGPT Dashboard")
-
 
         # Profile
         with gr.Row():
@@ -187,7 +193,6 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                     outputs=None
                 )
 
-
             # Notifications
             with gr.Column(scale=2):
                 gr.Markdown("## Notifications")
@@ -203,10 +208,10 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                     ],
                     value=[
                         ["2026-03-15",
-                        "Submit Thesis Proposal", False],
+                         "Submit Thesis Proposal", False],
 
                         ["2026-02-01",
-                        "Register for Spring", True]
+                         "Register for Spring", True]
                     ],
                     interactive=True
                 )
@@ -241,7 +246,7 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                     label="Planned Courses",
                     multiselect=True
                 )
-            
+
                 update_progress_btn = gr.Button("Update Progress")
 
             # Degree Progress Chart
@@ -249,36 +254,48 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 gr.Markdown("## Degree Progress")
                 progress_plot = gr.Plot()
 
-
-
         update_progress_btn.click(
             update_progress,
             completed,
             progress_plot
         )
 
-
         # Chat
         gr.Markdown("## Ask GradGPT")
 
-        question = gr.Textbox(
-            placeholder="Ask a question..."
+        chatbot = gr.Chatbot(label="GradGPT", height=400)
+        chat_state = gr.State([])
+
+        with gr.Row():
+            chat_input = gr.Textbox(
+                placeholder="Ask a question...",
+                show_label=False,
+                scale=8
+            )
+            send_btn = gr.Button("Send", scale=1)
+
+        # Calls coordinator logic to process message
+
+        def chat_handler(message, history):
+
+            if not message:
+                return history, history, ""
+
+            updated_history = process_message(message, history)
+
+            return updated_history, updated_history, ""
+
+        send_btn.click(
+            chat_handler,
+            inputs=[chat_input, chat_state],
+            outputs=[chatbot, chat_state, chat_input]
         )
 
-        answer = gr.Textbox(
-            label="Response",
-            lines=4,
-            interactive=False
+        chat_input.submit(
+            chat_handler,
+            inputs=[chat_input, chat_state],
+            outputs=[chatbot, chat_state, chat_input]
         )
-
-        ask_btn = gr.Button("Submit")
-
-        ask_btn.click(
-            generate_response,
-            question,
-            answer
-        )
-
 
         # Styling (Notification Colors)
         gr.HTML("""
@@ -296,7 +313,6 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
 
             </style>
         """)
-
 
         gr.Markdown("---")
         gr.Markdown("GradGPT © 2026")
