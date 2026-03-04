@@ -76,7 +76,7 @@ def load_knowledge_base_from_supabase():
         supabase
         .table("KnowledgeBase")
         .select("*")
-        .contains("agentIds", ["3"])  # 3 = "degree progress agent"
+        .contains("agentIds", ["4"])  # 4 = "forms and deadlines agent"
         .execute()
     )
 
@@ -101,7 +101,7 @@ def azure_chat(system_message, user_message):
             {"role": "user", "content": user_message},
         ],
         # changed from 1024 to 2048 for better handling of longer contexts  
-        max_completion_tokens=2048,
+        max_completion_tokens=4000,
     )
 
     return response.choices[0].message.content
