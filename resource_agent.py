@@ -8,17 +8,30 @@ import xml.etree.ElementTree as ET
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
-# from googlegenai import AzureOpenAI
-from google import genai
+from openai import AzureOpenAI
+from supabase import create_client, Client
 
 load_dotenv()
 
 DEBUG = False
-MODEL_ID = "gemini-2.5-flash-lite"
-RES_JSON_PATH = "knowledge_base/resources.json"
-SAVED_RES_PATH = "knowledge_base/saved_resources.json"
-SERPAPI_ENDPOINT = "https://serpapi.com/search.json"
 
+MODEL_ID = "gradgpt-chat"
+SUPABASE_RESOURCES_TABLE = "resources"
+
+endpoint = "https://gradgpt-openai.openai.azure.com/"
+deployment = "gradgpt-chat"
+api_version = "2024-12-01-preview"
+subscription_key = os.environ.get("Azure_API_Key")
+
+
+SUPABASE_KNOWLEDGE_TABLE = "KnowledgeBase"
+RESOURCE_AGENT_ID = "2"
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(supabase_url, supabase_key)
+
+
+SERPAPI_ENDPOINT = "https://serpapi.com/search.json"
 
 # Prompts -----------------------------------------------------------------
 
@@ -34,7 +47,7 @@ Rules:
 - If the query is not asking for resources, set is_resource_request to false.
 
 Schema:
-{
+{{
   "is_resource_request": true/false,
   "user_needs": "short sentence",
   "topics": ["topic1", "topic2"],
@@ -46,7 +59,7 @@ Schema:
   "arxiv_query": "search string or empty",
   "semantic_scholar_query": "search string or empty",
   "google_scholar_query": "search string or empty"
-}
+}}
 
 Student query:
 {query}
@@ -66,16 +79,16 @@ Your task:
 - Briefly explain why each is useful
 - Always include the link EXACTLY as provided
 - Return valid JSON only with this schema:
-{
+{{
   "ranked": [
-    {
+    {{
       "title": "string",
       "link": "string",
       "source": "local|arxiv|semantic_scholar|google_scholar",
       "why": "short sentence"
-    }
+    }}
   ]
-}
+}}
 
 Student query:
 {query}
@@ -93,45 +106,58 @@ AVAILABLE RESOURCES:
 
 class ResourceAgent:
     def __init__(self):
-        self.client = genai.Client(api_key=os.environ.get("Gemini_API_Key"))
-        self.resources_json = self._load_resources_json(RES_JSON_PATH)
-        self.available_tags = self._load_available_tags(self.resources_json)
-        self.saved_resources = self._load_saved_resources(SAVED_RES_PATH)
+        self.client = AzureOpenAI(
+            api_version=api_version,
+            azure_endpoint=endpoint,
+            api_key=subscription_key,
+        )
+        self.resources_list = self._load_resources_from_supabase()
+        self.available_tags = self._load_available_tags(self.resources_list)
 
-    def _load_resources_json(self, path):
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data.get("resources", [])
+    def _load_resources_from_supabase(self) -> List[Dict[str, Any]]:
+        try:
+            sb = supabase
+            response = (
+                sb.table("KnowledgeBase")
+                .select("*")
+                .contains("agentIds", ["2"])
+                .execute()
+            )
+            rows = response.data or []
+            resources = []
+            for r in rows:
+                tags = r.get("tags", [])
+                if isinstance(tags, str):
+                    tags = json.loads(tags) if tags else []
+                resources.append(
+                    {
+                        "id": r.get("id"),
+                        "title": r.get("title", ""),
+                        "description": r.get("content", ""),
+                        "url": r.get("sourceURL", ""),
+                        "tags": tags,
+                    }
+                )
+            return resources
+        except Exception as e:
+            if DEBUG:
+                print(f"Supabase load error: {e}")
+            return []
 
     def _load_available_tags(self, resources: List[Dict]) -> set:
         return {tag.lower() for r in resources for tag in r.get("tags", [])}
 
-    def _load_saved_resources(self, path: str) -> Dict[str, List[Dict[str, Any]]]:
-        if not os.path.exists(path):
-            return {}
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            return data.get("categories", {})
-        except (json.JSONDecodeError, OSError):
-            return {}
+    # LLM Call ----------------------------------------------------------------
 
-    def _persist_saved_resources(self):
-        data = {"categories": self.saved_resources}
-        os.makedirs(os.path.dirname(SAVED_RES_PATH), exist_ok=True)
-        with open(SAVED_RES_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-
-    # Make LLM Calls ------------------------------------------------
-
-    def _generate(self, prompt: str):
-        response = self.client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
+    def _generate(self, prompt: str) -> str:
+        response = self.client.chat.completions.create(
+            model=deployment,
+            messages=[{"role": "user", "content": prompt}],
         )
+        text = response.choices[0].message.content or ""
         if DEBUG:
-            print(response.text)
-        return response.text
+            print(text)
+        return text
 
     def _safe_json_loads(self, text: str) -> Dict[str, Any]:
         try:
@@ -148,7 +174,7 @@ class ResourceAgent:
     def _normalize(self, text: str) -> str:
         return re.sub(r"\s+", " ", text.lower()).strip()
 
-    # Functions -----------------------------------------------------
+    # Core Functions ----------------------------------------------------------
 
     def analyze_query(self, query: str) -> Dict[str, Any]:
         prompt = RESOURCE_ANALYSIS_PROMPT.format(query=query)
@@ -171,7 +197,7 @@ class ResourceAgent:
     def search_local_resources(self, analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
         keywords = analysis.get("keywords", []) + analysis.get("topics", [])
         ranked = []
-        for r in self.resources_json:
+        for r in self.resources_list:
             score = self._score_resource(r, keywords)
             if score > 0:
                 ranked.append((score, r))
@@ -295,75 +321,6 @@ class ResourceAgent:
             )
         return results
 
-    def save_resource(
-        self, resource: Dict[str, Any], category: str, notes: str = ""
-    ) -> str:
-        category = (category or "Uncategorized").strip()
-        if not category:
-            category = "Uncategorized"
-        entry = {
-            "title": resource.get("title", "Untitled"),
-            "link": resource.get("link", ""),
-            "source": resource.get("source", ""),
-            "tags": resource.get("tags", []),
-            "notes": notes,
-            "added_at": time.strftime("%Y-%m-%d"),
-        }
-        self.saved_resources.setdefault(category, [])
-        if any(
-            e.get("link") == entry["link"]
-            and e.get("title") == entry["title"]
-            for e in self.saved_resources[category]
-        ):
-            return "Resource already saved in this category."
-        self.saved_resources[category].append(entry)
-        self._persist_saved_resources()
-        return "Resource saved."
-
-    def list_categories(self) -> List[str]:
-        return sorted(self.saved_resources.keys())
-
-    def list_saved_resources(self, category: str = "") -> List[Dict[str, Any]]:
-        if not category:
-            resources = []
-            for cat, items in self.saved_resources.items():
-                for item in items:
-                    resources.append({**item, "category": cat})
-            return resources
-        return [
-            {**item, "category": category}
-            for item in self.saved_resources.get(category, [])
-        ]
-
-    def delete_saved_resource(self, link: str, category: str) -> str:
-        if category not in self.saved_resources:
-            return "Category not found."
-        before = len(self.saved_resources[category])
-        self.saved_resources[category] = [
-            r for r in self.saved_resources[category] if r.get("link") != link
-        ]
-        if len(self.saved_resources[category]) == before:
-            return "Resource not found."
-        if not self.saved_resources[category]:
-            del self.saved_resources[category]
-        self._persist_saved_resources()
-        return "Resource deleted."
-
-    def saved_resources_table(self, category: str = "") -> List[List[str]]:
-        rows = []
-        for r in self.list_saved_resources(category):
-            rows.append(
-                [
-                    r.get("category", ""),
-                    r.get("title", ""),
-                    r.get("link", ""),
-                    r.get("source", ""),
-                    r.get("notes", ""),
-                    r.get("added_at", ""),
-                ]
-            )
-        return rows
-
     def rank_resources(
         self, query: str, user_needs: str, candidates: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
@@ -394,7 +351,21 @@ class ResourceAgent:
             for r in candidates[:5]
         ]
 
-    def run(self, query: str):
+    def _format_response_for_chat(self, ranked: List[Dict[str, Any]]) -> str:
+        lines = ["## Recommended resources\n"]
+        for i, r in enumerate(ranked, start=1):
+            title = r.get("title", "Untitled")
+            link = r.get("link", "")
+            source = r.get("source", "")
+            why = r.get("why", "")
+            link_md = f"[{title}]({link})" if link else title
+            lines.append(f"**{i}. {link_md}**  \n_{source}_")
+            if why:
+                lines.append(f"   {why}")
+            lines.append("")
+        return "\n".join(lines).strip()
+
+    def run(self, query: str) -> str:
         analysis = self.analyze_query(query)
         if not analysis or not analysis.get("is_resource_request", False):
             return "I can help find resources. Ask for papers, tutorials, datasets, or tools and include your topic."
@@ -406,17 +377,20 @@ class ResourceAgent:
         online_results = []
 
         if analysis.get("use_online", True):
-            arxiv_query = analysis.get("arxiv_query", "")
-            scholar_query = analysis.get("semantic_scholar_query", "")
-            google_scholar_query = analysis.get("google_scholar_query", "")
-            online_results.extend(self.search_arxiv(arxiv_query, max_results=5))
-            time.sleep(0.5)
             online_results.extend(
-                self.search_semantic_scholar(scholar_query, max_results=5)
+                self.search_arxiv(analysis.get("arxiv_query", ""), max_results=5)
             )
             time.sleep(0.5)
             online_results.extend(
-                self.search_google_scholar(google_scholar_query, max_results=5)
+                self.search_semantic_scholar(
+                    analysis.get("semantic_scholar_query", ""), max_results=5
+                )
+            )
+            time.sleep(0.5)
+            online_results.extend(
+                self.search_google_scholar(
+                    analysis.get("google_scholar_query", ""), max_results=5
+                )
             )
 
         candidates = (local_results + online_results)[: max_results * 2]
@@ -425,15 +399,7 @@ class ResourceAgent:
         if not ranked:
             return "No relevant resources found."
 
-        lines = []
-        for i, r in enumerate(ranked, start=1):
-            lines.append(
-                f"{i}. {r.get('title', 'Untitled')}\n"
-                f"   Link: {r.get('link', '')}\n"
-                f"   Source: {r.get('source', '')}\n"
-                f"   Why: {r.get('why', '')}"
-            )
-        return "\n".join(lines)
+        return self._format_response_for_chat(ranked)
 
     def run_structured(self, query: str) -> Dict[str, Any]:
         analysis = self.analyze_query(query)
@@ -448,23 +414,32 @@ class ResourceAgent:
 
         local_results = self.search_local_resources(analysis)
         online_results = []
+
         if analysis.get("use_online", True):
-            arxiv_query = analysis.get("arxiv_query", "")
-            scholar_query = analysis.get("semantic_scholar_query", "")
-            google_scholar_query = analysis.get("google_scholar_query", "")
-            online_results.extend(self.search_arxiv(arxiv_query, max_results=5))
-            time.sleep(0.5)
             online_results.extend(
-                self.search_semantic_scholar(scholar_query, max_results=5)
+                self.search_arxiv(analysis.get("arxiv_query", ""), max_results=5)
             )
             time.sleep(0.5)
             online_results.extend(
-                self.search_google_scholar(google_scholar_query, max_results=5)
+                self.search_semantic_scholar(
+                    analysis.get("semantic_scholar_query", ""), max_results=5
+                )
+            )
+            time.sleep(0.5)
+            online_results.extend(
+                self.search_google_scholar(
+                    analysis.get("google_scholar_query", ""), max_results=5
+                )
             )
 
         candidates = (local_results + online_results)[: max_results * 2]
         ranked = self.rank_resources(query, user_needs, candidates)
-        return {"message": "", "ranked": ranked}
+        message = (
+            self._format_response_for_chat(ranked)
+            if ranked
+            else "No relevant resources found."
+        )
+        return {"message": message, "ranked": ranked}
 
 
 # Main ------------------------------------------------------------------------
@@ -472,7 +447,6 @@ class ResourceAgent:
 
 def main():
     res_agent = ResourceAgent()
-
     while True:
         query = input("Student's resource-related query: ")
         agent_response = res_agent.run(query)
