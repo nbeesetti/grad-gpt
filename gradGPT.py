@@ -6,6 +6,8 @@ import plotly.express as px
 from supabase import create_client, Client
 from coordinator import process_message
 import os
+import requests
+import pandas as pd
 
 load_dotenv()
 
@@ -47,6 +49,115 @@ COURSES = {
 COURSE_LIST = list(COURSES.keys())
 TOTAL_UNITS_REQUIRED = 45
 
+API_BASE = "http://localhost:8000"
+
+def fetch_notifications(user_id):
+    response = requests.get(f"{API_BASE}/notifications/{user_id}")
+    data = response.json()
+
+    formatted = []
+
+    for n in data:
+        rule = n["NotificationRules"]
+
+        # Use month/day if available, else fallback to text due_date
+        if rule.get("month") is not None and rule.get("day") is not None:
+            due_display = f"{rule['month']:02d}-{rule['day']:02d}"
+        elif rule.get("due_date"):
+            due_display = rule["due_date"]
+        else:
+            due_display = ""
+
+        formatted.append([
+            n["id"],            # Notification ID
+            due_display,        # Computed due date
+            rule.get("message"),# Notification message
+            n.get("read")       # Read status
+        ])
+
+    df = pd.DataFrame(
+        formatted,
+        columns=["ID", "Due Date", "Message", "Read"]
+    )
+
+    return df
+
+
+
+def sync_and_refresh(df, email):
+
+    if df is None or email is None:
+        return df
+
+    # Mark notifications as read
+    for _, row in df.iterrows():
+        if row["Read"] is True:
+            requests.post(
+                f"{API_BASE}/notifications/read/{row['ID']}"
+            )
+
+    # Get user_id from email
+    response = supabase.table("Users").select("id").eq("email", email).execute()
+
+    if not response.data:
+        print("User not found")
+        return df
+
+    user_id = response.data[0]["id"]
+
+    # Fetch updated notifications
+    return fetch_notifications(user_id)
+
+def save_courses(email, completed, current, planned):
+    completed = completed or []
+    current = current or []
+    planned = planned or []
+
+    # Remove from planned if already in completed or current
+    planned = [c for c in planned if c not in completed + current]
+
+    # Fetch user ID
+    response = supabase.table("Users").select("id").eq("email", email).execute()
+    if not response.data or len(response.data) == 0:
+        print("User not found")
+        # Return progress chart + current values to avoid blanking
+        return update_progress(completed), completed, current, planned
+
+    user_id = response.data[0]["id"]
+
+    # Update DB
+    supabase.table("Users").update({
+        "completedCourses": completed,
+        "currentCourses": current,
+        "plannedCourses": planned
+    }).eq("id", user_id).execute()
+
+    # Return updated progress chart + updated lists for dropdowns
+    return update_progress(completed), completed, current, planned
+
+# Fetch user profile, courses, notifications, and degree progress plot to pre-populate the dashboard
+def load_user_state(email):
+    
+    # Get user profile
+    response = supabase.table("Users").select("*").eq("email", email).execute()
+    if len(response.data) == 0:
+        return [], [], [], pd.DataFrame(columns=["ID", "Due Date", "Message", "Read"])
+    
+    user = response.data[0]
+    user_id = user["id"]
+    
+    # Load courses
+    completed = user.get("completedCourses") or []
+    current = user.get("currentCourses") or []
+    planned = user.get("plannedCourses") or []
+    
+    # Fetch notifications from backend 
+    notif_df = fetch_notifications(user_id)
+
+    # Get degree progress plot
+    progress_plot = update_progress(completed)
+
+    return completed, current, planned, notif_df, progress_plot, user.get("status") or "Undergraduate"
 
 def login_user(email):
     if not email or "@" not in email:
@@ -75,13 +186,20 @@ def login_user(email):
         graduation_quarter = response.data[0].get("graduationTarget", "")
         start_term = response.data[0].get("startTerm", "")
 
+    completed, current, planned, notif_df, progress_plot, status_input = load_user_state(email)
     return (
         gr.update(visible=False),
         gr.update(visible=True),
         email,
         email,
         start_term,
-        graduation_quarter
+        graduation_quarter,
+        completed, 
+        current, 
+        planned,
+        notif_df,
+        progress_plot,
+        status_input
     )
 
 # Needs better logic to accurately not just reflect 45 units but matches all the required classes needed
@@ -151,14 +269,14 @@ def update_notifications(df):
 
     return df
 
-
-def update_profile(email, start_term_input, grad_term_input):
+def update_profile(email, start_term_input, grad_term_input, status_input):
     if not email:
         return "No user logged in."
 
     supabase.table("Users").update({
         "startTerm": start_term_input,
-        "graduationTarget": grad_term_input
+        "graduationTarget": grad_term_input,
+        "status": status_input 
     }).eq("email", email).execute()
 
 
@@ -185,11 +303,16 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 email_display = gr.Textbox(label="Email", interactive=False)
                 start_term_input = gr.Textbox(label="Start Term",)
                 grad_term_input = gr.Textbox(label="Graduation Term")
+                status_input = gr.Dropdown(
+                    label="Status",
+                    choices=["Undergraduate", "Graduate"],
+                    value=""  
+                )
 
                 greet_btn = gr.Button("Save Profile")
                 greet_btn.click(
                     update_profile,
-                    inputs=[user_state, start_term_input, grad_term_input],
+                    inputs=[user_state, start_term_input, grad_term_input, status_input],
                     outputs=None
                 )
 
@@ -198,30 +321,17 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 gr.Markdown("## Notifications")
 
                 notif_df = gr.Dataframe(
-                    headers=[
-                        "Due Date",
-                        "Message", "Read"
-                    ],
-                    datatype=[
-                        "date",
-                        "str", "bool"
-                    ],
-                    value=[
-                        ["2026-03-15",
-                         "Submit Thesis Proposal", False],
-
-                        ["2026-02-01",
-                         "Register for Spring", True]
-                    ],
+                    headers=["ID", "Due Date", "Message", "Read"],
+                    datatype=["number", "str", "str", "bool"],
                     interactive=True
                 )
 
                 update_notif_btn = gr.Button("Update Notifications")
 
                 update_notif_btn.click(
-                    update_notifications,
-                    notif_df,
-                    notif_df
+                    sync_and_refresh,
+                    inputs=[notif_df, user_state],
+                    outputs=notif_df
                 )
 
         # Courses
@@ -232,19 +342,22 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 completed = gr.Dropdown(
                     choices=COURSE_LIST,
                     label="Completed Courses",
-                    multiselect=True
+                    multiselect=True,
+                    value=[]
                 )
 
                 current = gr.Dropdown(
                     choices=COURSE_LIST,
                     label="Current Courses",
-                    multiselect=True
+                    multiselect=True,
+                    value=[]
                 )
 
                 planned = gr.Dropdown(
                     choices=COURSE_LIST,
                     label="Planned Courses",
-                    multiselect=True
+                    multiselect=True,
+                    value=[]
                 )
 
                 update_progress_btn = gr.Button("Update Progress")
@@ -255,9 +368,9 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
                 progress_plot = gr.Plot()
 
         update_progress_btn.click(
-            update_progress,
-            completed,
-            progress_plot
+            save_courses,
+            inputs=[user_state, completed, current, planned],
+            outputs=[progress_plot, completed, current, planned]
         )
 
         # Chat
@@ -326,7 +439,13 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
             user_state,
             email_display,
             start_term_input,
-            grad_term_input
+            grad_term_input,
+            completed, 
+            current,
+            planned,
+            notif_df,
+            progress_plot,
+            status_input
         ]
     )
 
