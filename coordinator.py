@@ -31,42 +31,82 @@ client = AzureOpenAI(
 
 SYSTEM_MESSAGE = """
 You are the coordinator agent Grad-GPT for graduate students at Cal Poly SLO.
-Some background information -- You can assume that anyone you
-interact with is either a) a current CS MS student or b) a prospective CS MS student at Cal Poly SLO. Further, for current students, the Computer Science MS requires a thesis so don't ask if they are doing a thesis or not.  
+
+Background:
+Assume every user is either:
+a) a current CS MS student, or
+b) a prospective CS MS student at Cal Poly SLO.
+
+For current students, the CS MS program requires a thesis, so never ask whether they are doing a thesis.
 
 You work alongside three specialized agents:
-1. forms_agent → handles administrative forms, deadlines, graduation term requirements.
-2. degree_planning_agent → handles course planning and degree progress.
-3. resource_agent → handles research, literature, and compute resources.
 
-You must follow this reasoning process internally:
+1. forms_agent → handles administrative forms, deadlines, graduation requirements, and official procedures.
+2. degree_planning_agent → handles course planning, program requirements, and degree progress.
+3. resource_agent → handles research resources, literature searches, datasets, compute tools, and project tools.
 
-Step 1: Determine user intent category.
-Step 2: Determine if clarification is needed.
-Step 3: Determine which agent(s) to call.
-Step 4: If multi-agent, decompose the question into subqueries.
-Step 5: If ready, delegate.
+Your primary job is to ROUTE the user's request to the correct agent.
 
-Rules:
+IMPORTANT PRINCIPLE:
+When a user asks a question, you should almost always delegate the request to an agent immediately.
 
-- If clarification is needed, respond conversationally and ask a clarifying question.
-- If the question is clear and ready for delegation, DO NOT respond conversationally.
-- Instead, output ONLY valid JSON in the following format:
-- Keep the query concise and only include information that was requested by the student, do not ask for more information than what the student asked for in the original query. If you need to ask for more information, ask a clarifying question instead of delegating.
+Do NOT ask follow-up questions unless delegation is impossible.
+
+Uncertainty about details should be passed to the downstream agent instead of asking the user.
+
+Only ask a clarification question if BOTH of the following are true:
+1. The question cannot be understood.
+2. The request cannot reasonably be routed to any agent.
+
+Otherwise, delegate.
+
+Reasoning process (internal only):
+1. Identify the user intent.
+2. Choose the most appropriate agent.
+3. If the question contains multiple intents, split it into subqueries.
+4. Delegate.
+
+Delegation Rules:
+
+If the question is understandable and can be routed, output ONLY valid JSON in this format:
 
 {
   "delegate": true,
   "subqueries": [
     {
       "agent": "forms_agent | degree_planning_agent | resource_agent",
-      "query": "sub-question text"
+      "query": "concise reformulation of the user's question"
     }
   ]
 }
 
-- If multiple agents are needed, include multiple subqueries.
-- Do not include any extra commentary when outputting JSON.
-- If you are still clarifying, respond normally in natural language.
+Rules for writing subqueries:
+- Keep the query concise.
+- Preserve the student's original intent.
+- Do not add new questions.
+- Do not request extra information.
+- Do not ask the user for clarification.
+- If information is missing, pass the question as-is to the agent.
+
+Multiple agents:
+If the question involves multiple domains, create multiple subqueries.
+
+Examples:
+
+User: "What classes should I take next quarter?"
+→ degree_planning_agent
+
+User: "What forms to fill out before graduation?"
+→ forms_agent
+
+User: "What tools can I use to search research papers?"
+→ resource_agent
+
+User: "What classes should I take and when is the graduation application due?"
+→ degree_planning_agent + forms_agent
+
+If clarification is absolutely required, respond normally in natural language and ask concise clarification questions.
+Otherwise, output ONLY JSON.
 """
 
 
@@ -104,7 +144,7 @@ def ask_coordinator(user_message, history):
 
     response = client.chat.completions.create(
         messages=messages,
-        max_completion_tokens=1024,
+        max_completion_tokens=8000,
         model=deployment
     )
 
@@ -131,8 +171,8 @@ def synthesize_response(original_user_query, agent_responses):
             {"role": "system", "content": SYNTHESIS_SYSTEM_MESSAGE},
             {"role": "user", "content": formatted_input},
         ],
-        max_completion_tokens=1500,
-        model=deployment
+        model=deployment,
+        max_completion_tokens=8000
     )
 
     print("Raw synthesis response:", response)
@@ -145,7 +185,8 @@ def synthesize_response(original_user_query, agent_responses):
 
 def handle_delegation(parsed_json, original_query, user_id=None):
     responses = []
-
+    print(
+        f"Handle Delegation with parsed json: {parsed_json} and OG query: {original_query}")
     for sub in parsed_json["subqueries"]:
         agent = sub["agent"]
         query = sub["query"]
@@ -154,7 +195,8 @@ def handle_delegation(parsed_json, original_query, user_id=None):
             response = run_forms_and_deadlines_agent(query)
 
         elif agent == "degree_planning_agent":
-            response = run_degree_planning_agent(query, user_id=user_id)  # pass user_id here
+            response = run_degree_planning_agent(
+                query, user_id=user_id)  # pass user_id here
 
         elif agent == "resource_agent":
             #
@@ -178,6 +220,7 @@ def handle_delegation(parsed_json, original_query, user_id=None):
             response = "Unknown agent."
 
         responses.append(response)
+    print(f"Combined Responses: {responses}")
 
     combined = "\n\n".join(responses)
 
@@ -201,23 +244,47 @@ def process_message(user_message, history, user_id=None):
     # Append user message first
     history.append({"role": "user", "content": user_message})
 
-    # Debug: show exactly what the coordinator returned
-    print("[DEBUG] Coordinator output:", assistant_response)
-
     # Try parsing JSON to see if delegation is required
+    delegated_agents = []
+
     try:
         parsed = json.loads(assistant_response)
-        print("[DEBUG] Parsed JSON from coordinator:", parsed)
 
         if parsed.get("delegate") is True:
-            final_response = handle_delegation(parsed, user_message, user_id=user_id)  # pass user_id here
+            delegated_agents = [sub["agent"]
+                                for sub in parsed.get("subqueries", [])]
+
+            final_response = handle_delegation(
+                parsed, user_message, user_id=user_id
+            )
+
             history.append({"role": "assistant", "content": final_response})
-            return history
+
+        else:
+            history.append(
+                {"role": "assistant", "content": assistant_response})
 
     except json.JSONDecodeError:
-        # Not JSON → coordinator is clarifying or conversational
-        print("[DEBUG] Coordinator response is conversational, not delegation JSON.")
+        history.append({"role": "assistant", "content": assistant_response})
 
-    # Normal response (clarification)
-    history.append({"role": "assistant", "content": assistant_response})
+    # Output for coordinator routing testing
+
+    print("\n" * 10)
+    print("==============================================================")
+    print("============== GRAD-GPT COORDINATOR ROUTING ====================")
+    print("==============================================================")
+    print("USER MESSAGE:")
+    print(user_message)
+    print("--------------------------------------------------------------")
+
+    if delegated_agents:
+        print("AGENTS DELEGATED TO:")
+        for agent in delegated_agents:
+            print(f"  - {agent}")
+    else:
+        print("AGENTS DELEGATED TO: NONE (coordinator handled or clarifying)")
+
+    print("==============================================================")
+    print("\n" * 5)
+
     return history
