@@ -17,15 +17,6 @@ subscription_key = os.environ.get("Azure_API_Key")
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 
-print(f"[INIT] Supabase URL loaded: {bool(supabase_url)}")
-print(f"[INIT] Supabase Key loaded: {bool(supabase_key)}")
-print(f"[INIT] Azure API Key loaded: {bool(subscription_key)}")
-print(f"[INIT] Azure endpoint: {endpoint}")
-print(f"[INIT] Azure deployment: {deployment}")
-print(f"[INIT] Azure api_version: {api_version}")
-print(
-    f"[INIT] Azure API key preview: {subscription_key[:6] + '...' if subscription_key else 'MISSING'}")
-
 supabase: Client = create_client(supabase_url, supabase_key)
 
 client = AzureOpenAI(
@@ -33,7 +24,6 @@ client = AzureOpenAI(
     azure_endpoint=endpoint,
     api_key=subscription_key,
 )
-
 
 ROUTER_AND_FILTER_PROMPT = """
 Classify the student question and extract structured course filters.
@@ -64,6 +54,8 @@ You are an academic advisor assistant for Cal Poly's graduate CS program.
 Answer ONLY using the provided knowledge base entries.
 If the information is missing, say "Please contact bellardo@calpoly.edu for more information."
 
+{user_context}
+
 KNOWLEDGE BASE:
 {knowledge_context}
 
@@ -85,7 +77,6 @@ Return JSON only (no markdown, no backticks):
 Be generous — include reasonably related courses.
 """
 
-
 def load_knowledge_base_from_supabase():
     try:
         print("[KB] Loading knowledge base from Supabase...")
@@ -99,8 +90,7 @@ def load_knowledge_base_from_supabase():
         entries = response.data or []
         print(f"[KB] Loaded {len(entries)} KB entries")
         if entries:
-            print(
-                f"[KB] Sample entry titles: {[e.get('title', 'N/A') for e in entries[:3]]}")
+            print(f"[KB] Sample entry titles: {[e.get('title','N/A') for e in entries[:3]]}")
         return entries
     except Exception as e:
         print(f"[KB] ERROR loading KB: {str(e)}")
@@ -109,6 +99,36 @@ def load_knowledge_base_from_supabase():
 
 KB_CACHE = load_knowledge_base_from_supabase()
 
+def load_user_context(user_id: int):
+    try:
+        print(f"[USER] Loading user data for id: {user_id}")
+        response = (
+            supabase
+            .table("Users")
+            .select("id, completedCourses, currentCourses, graduationTarget, startTerm, plannedCourses")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+        user = response.data
+        print(f"[USER] Loaded user: {user}")
+        return user
+    except Exception as e:
+        print(f"[USER] ERROR loading user: {str(e)}")
+        return None
+
+def format_user_context(user):
+    if not user:
+        return ""
+    lines = [
+        "STUDENT PROFILE:",
+        f"- Start Term: {user.get('startTerm', 'N/A')}",
+        f"- Graduation Target: {user.get('graduationTarget', 'N/A')}",
+        f"- Completed Courses: {', '.join(user.get('completedCourses') or []) or 'None'}",
+        f"- Current Courses: {', '.join(user.get('currentCourses') or []) or 'None'}",
+        f"- Planned Courses: {', '.join(user.get('plannedCourses') or []) or 'None'}",
+    ]
+    return "\n".join(lines)
 
 def azure_json_call(system_msg, user_msg, max_completion_tokens=2000):
     print("\n[AZURE] --- JSON Call ---")
@@ -154,7 +174,6 @@ def azure_json_call(system_msg, user_msg, max_completion_tokens=2000):
         print(f"[AZURE] Full traceback:\n{traceback.format_exc()}")
         return {}
 
-
 def classify_and_extract(query):
     print(f"\n[ROUTER] Classifying query: {query!r}")
     parsed = azure_json_call(
@@ -178,11 +197,9 @@ def classify_and_extract(query):
     print(f"[ROUTER] Intent: {intent} | Levels: {levels} | Topic: {topic}")
     return {"intent": intent, "levels": levels, "topic": topic}
 
-
 def extract_course_number(course_num_str):
     match = re.search(r'\d+', str(course_num_str))
     return int(match.group()) if match else None
-
 
 def filter_by_levels(courses, levels):
     if not levels:
@@ -201,7 +218,6 @@ def filter_by_levels(courses, levels):
     print(f"[COURSES] After level filter: {len(filtered)} courses")
     return filtered
 
-
 def keyword_topic_filter(topic, courses):
     if not topic:
         return courses
@@ -214,14 +230,11 @@ def keyword_topic_filter(topic, courses):
     print(f"[COURSES] Keyword filter for '{topic}': {len(matched)} matches")
     return matched
 
-
 def semantic_topic_filter(topic, courses):
     if not topic or not courses:
         return courses
-    print(
-        f"[COURSES] Running semantic filter for topic: '{topic}' on {len(courses)} courses")
-    slim_courses = [{"courseNum": c["courseNum"],
-                     "courseTitle": c["courseTitle"]} for c in courses]
+    print(f"[COURSES] Running semantic filter for topic: '{topic}' on {len(courses)} courses")
+    slim_courses = [{"courseNum": c["courseNum"], "courseTitle": c["courseTitle"]} for c in courses]
     parsed = azure_json_call(
         "You are a course relevance classifier. Return only valid JSON with no markdown.",
         LLM_TOPIC_FILTER_PROMPT.format(
@@ -236,15 +249,12 @@ def semantic_topic_filter(topic, courses):
         return courses
     relevant_set = set(relevant_nums)
     filtered = [c for c in courses if c["courseNum"] in relevant_set]
-    print(
-        f"[COURSES] Semantic filter result: {len(filtered)} relevant courses")
+    print(f"[COURSES] Semantic filter result: {len(filtered)} relevant courses")
     return filtered
-
 
 def load_filtered_courses(levels, topic):
     try:
-        print(
-            f"\n[COURSES] Loading courses — levels: {levels}, topic: {topic}")
+        print(f"\n[COURSES] Loading courses — levels: {levels}, topic: {topic}")
         response = supabase.table("Courses").select(
             "courseNum, courseTitle, units, prerequisites"
         ).execute()
@@ -267,10 +277,7 @@ def load_filtered_courses(levels, topic):
 
     return semantic_topic_filter(topic, courses)
 
-
-def answer_course_query(levels, topic):
-    print(
-        f"\n[ANSWER] Building course answer — levels: {levels}, topic: {topic}")
+def answer_course_query(levels, topic, user_context=""):
     courses = load_filtered_courses(levels, topic)
     if not courses:
         return "No matching courses found for your query."
@@ -280,10 +287,10 @@ def answer_course_query(levels, topic):
         if c.get("prerequisites"):
             line += f"\n  *Prerequisites: {c['prerequisites']}*"
         lines.append(line)
-    return f"Here are matching courses ({len(courses)} found):\n\n" + "\n\n".join(lines)
+    note = f"\n\n_{user_context}_" if user_context else ""
+    return f"Here are matching courses ({len(courses)} found):\n\n" + "\n\n".join(lines) + note
 
-
-def answer_kb_query(query):
+def answer_kb_query(query, user_context=''):
     print(f"\n[KB ANSWER] Answering KB query: {query!r}")
     if not KB_CACHE:
         print("[KB ANSWER] KB cache is empty!")
@@ -296,16 +303,17 @@ def answer_kb_query(query):
         content = entry.get("content", "")
         source = entry.get("sourceURL", "")
         tags = entry.get("tags", [])
-        kb_entries.append(
-            f"### {title}\n{content}\nSource: {source}\nTags: {', '.join(tags) if tags else 'N/A'}")
+        kb_entries.append(f"### {title}\n{content}\nSource: {source}\nTags: {', '.join(tags) if tags else 'N/A'}")
 
     kb_context = "\n\n---\n\n".join(kb_entries)
-    print(
-        f"[KB ANSWER] Using {len(KB_CACHE[:50])} KB entries, context length: {len(kb_context)} chars")
+    print(f"[KB ANSWER] Using {len(KB_CACHE[:50])} KB entries, context length: {len(kb_context)} chars")
 
     system_msg = "You are an academic advisor assistant for Cal Poly's graduate CS program."
     user_msg = KB_ANSWER_PROMPT.format(
-        knowledge_context=kb_context, query=query)
+        user_context=user_context,
+        knowledge_context=kb_context,
+        query=query
+    )
 
     try:
         response = client.chat.completions.create(
@@ -324,7 +332,8 @@ def answer_kb_query(query):
         return f"Could not retrieve answer from knowledge base. Error: {str(e)}"
 
 
-def run_degree_planning_agent(query):
+
+def run_degree_planning_agent(query, user_id):
     print(f"\n{'='*50}")
     print(f"[AGENT] New query: {query!r}")
     print(f"{'='*50}")
@@ -335,14 +344,17 @@ def run_degree_planning_agent(query):
     topic = parsed["topic"]
 
     print(f"[AGENT] Routing to intent: {intent}")
+    
+    user = load_user_context(user_id) if user_id else None
+    user_context = format_user_context(user)
 
     if intent == "COURSE_ONLY":
-        result = answer_course_query(levels, topic)
+        result = answer_course_query(levels, topic, user_context)
     elif intent == "KB_ONLY":
-        result = answer_kb_query(query)
+        result = answer_kb_query(query, user_context)
     elif intent == "HYBRID":
-        kb_answer = answer_kb_query(query)
-        course_answer = answer_course_query(levels, topic)
+        kb_answer = answer_kb_query(query, user_context)
+        course_answer = answer_course_query(levels, topic, user_context)
         result = f"{kb_answer}\n\n---\n\n{course_answer}"
     else:
         result = "Could not determine intent. Please try rephrasing your question."
@@ -351,28 +363,28 @@ def run_degree_planning_agent(query):
     return result
 
 
-# def chat_with_gpt(message, history):
-#     if history is None:
-#         history = []
-#     history.append(gr.ChatMessage(role="user", content=message))
-#     try:
-#         response = run_degree_planning_agent(message)
-#     except Exception as e:
-#         response = f"Error: {str(e)}"
-#         print(f"[UI] Top-level error: {str(e)}")
-#     history.append(gr.ChatMessage(role="assistant", content=response))
-#     return history, ""
+def chat_with_gpt(message, history):
+    if history is None:
+        history = []
+    history.append(gr.ChatMessage(role="user", content=message))
+    try:
+        response = run_degree_planning_agent(message)
+    except Exception as e:
+        response = f"Error: {str(e)}"
+        print(f"[UI] Top-level error: {str(e)}")
+    history.append(gr.ChatMessage(role="assistant", content=response))
+    return history, ""
 
 
-# with gr.Blocks() as demo:
-#     gr.Markdown("# Welcome to Grad-GPT")
-#     chatbot = gr.Chatbot(height=400)
-#     chat_input = gr.Textbox(
-#         placeholder="Ask about courses, requirements, faculty, and more...")
-#     send_button = gr.Button("Send")
-#     send_button.click(chat_with_gpt, [chat_input, chatbot], [
-#                       chatbot, chat_input])
-#     chat_input.submit(chat_with_gpt, [chat_input, chatbot], [
-#                       chatbot, chat_input])
+with gr.Blocks() as demo:
+    gr.Markdown("# Welcome to Grad-GPT")
+    chatbot = gr.Chatbot(height=400)
+    chat_input = gr.Textbox(
+        placeholder="Ask about courses, requirements, faculty, and more...")
+    send_button = gr.Button("Send")
+    send_button.click(chat_with_gpt, [chat_input, chatbot], [
+                      chatbot, chat_input])
+    chat_input.submit(chat_with_gpt, [chat_input, chatbot], [
+                      chatbot, chat_input])
 
-# demo.launch()
+demo.launch()

@@ -388,25 +388,27 @@ with gr.Blocks(title="GradGPT Dashboard") as demo:
             send_btn = gr.Button("Send", scale=1)
 
         # Calls coordinator logic to process message
-
-        def chat_handler(message, history):
-
+        
+        def chat_handler(message, history, email):
             if not message:
                 return history, history, ""
 
-            updated_history = process_message(message, history)
+            # Get user_id from email
+            response = supabase.table("Users").select("id").eq("email", email).execute()
+            user_id = response.data[0]["id"] if response.data else None
 
+            updated_history = process_message(message, history, user_id=user_id)
             return updated_history, updated_history, ""
 
         send_btn.click(
             chat_handler,
-            inputs=[chat_input, chat_state],
+            inputs=[chat_input, chat_state, user_state], 
             outputs=[chatbot, chat_state, chat_input]
         )
 
         chat_input.submit(
             chat_handler,
-            inputs=[chat_input, chat_state],
+            inputs=[chat_input, chat_state, user_state],  # add user_state
             outputs=[chatbot, chat_state, chat_input]
         )
 

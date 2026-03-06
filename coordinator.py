@@ -143,7 +143,7 @@ def synthesize_response(original_user_query, agent_responses):
 # DELEGATION HANDLER
 
 
-def handle_delegation(parsed_json, original_query):
+def handle_delegation(parsed_json, original_query, user_id=None):
     responses = []
 
     for sub in parsed_json["subqueries"]:
@@ -154,7 +154,7 @@ def handle_delegation(parsed_json, original_query):
             response = run_forms_and_deadlines_agent(query)
 
         elif agent == "degree_planning_agent":
-            response = run_degree_planning_agent(query)
+            response = run_degree_planning_agent(query, user_id=user_id)  # pass user_id here
 
         elif agent == "resource_agent":
             #
@@ -187,7 +187,7 @@ def handle_delegation(parsed_json, original_query):
 # MAIN entry
 
 
-def process_message(user_message, history):
+def process_message(user_message, history, user_id=None):
     """
     Main function to be called by Gradio UI.
     Returns updated history list.
@@ -210,7 +210,7 @@ def process_message(user_message, history):
         print("[DEBUG] Parsed JSON from coordinator:", parsed)
 
         if parsed.get("delegate") is True:
-            final_response = handle_delegation(parsed, user_message)
+            final_response = handle_delegation(parsed, user_message, user_id=user_id)  # pass user_id here
             history.append({"role": "assistant", "content": final_response})
             return history
 
