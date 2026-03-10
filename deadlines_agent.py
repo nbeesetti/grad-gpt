@@ -76,7 +76,7 @@ def load_knowledge_base_from_supabase():
         supabase
         .table("KnowledgeBase")
         .select("*")
-        .contains("agentIds", ["3"])  # 3 = "degree progress agent"
+        .contains("agentIds", ["4"])  # 4 = "forms and deadlines agent"
         .execute()
     )
 
